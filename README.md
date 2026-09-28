@@ -9,7 +9,7 @@
 
 > The backend runs on Render's free tier, which spins down after 15 minutes of inactivity — the first request after a period of idleness can take 30–60 seconds to wake it up. This is a known, documented free-tier trade-off (see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)), not a bug.
 >
-> Gemini live status: the deployed backend currently runs on **deterministic fallback** (no `GEMINI_API_KEY` configured on the host yet). The "Force fallback" toggle in the UI reflects this either way — every negotiation is fully functional regardless.
+> Gemini live status: `GEMINI_API_KEY` is configured on the deployed backend, and a live smoke test confirmed the key authenticates correctly with Google's API — but that test hit a transient `503 Service Unavailable` from the Gemini model itself, so live structured-intent extraction succeeding end-to-end has **not yet been confirmed**. The system correctly fell back to deterministic telemetry both times, which every negotiation still uses reliably right now. See `docs/DEPLOYMENT.md` for the full test detail.
 
 An EV charging station simulator that accepts natural-language driver requests, extracts structured intent with Gemini, validates that intent against real telemetry (so the LLM can never override physical safety constraints), and dispatches EVs to charging ports with a resource-aware priority scheduler. Includes a React operations dashboard, a full FastAPI backend, a reproducible policy-comparison benchmark suite, and an experimental DQN baseline.
 

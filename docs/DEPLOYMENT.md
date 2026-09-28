@@ -40,17 +40,16 @@ Researched live (September 2026), not assumed from older documentation — provi
 - **Configurable CORS** (`app.py`, `ALLOWED_ORIGINS`) — set to exactly `https://ev-nexus.pages.dev` on the deployed backend. No wildcard.
 - **Real health endpoint** (`GET /api/health`) — confirmed live and correct after the gotcha above was fixed.
 
-## GEMINI_API_KEY — the one remaining manual step
+## GEMINI_API_KEY — Status
 
-**Not set on the deployed backend.** The backend currently runs entirely on deterministic fallback, which was verified working in production (see the smoke test results in `docs/CURRENT_PROJECT_STATUS.md`). Your key was never read, transmitted, or typed into any command in this deployment — by design.
+**Set on the deployed backend** (added by the user directly in Render's dashboard — never read or transmitted by any session). One controlled live smoke test was run against production afterward:
 
-To enable live Gemini on the deployed backend, enter your key **directly into Render's dashboard**, nowhere else:
+- The request reached `generativelanguage.googleapis.com` and **authenticated successfully** — no `AUTH_ERROR`, confirming the key itself is valid and correctly wired end-to-end (backend → Gemini SDK → network → Google's endpoint).
+- Gemini returned `HTTP 503 Service Unavailable` ("This model is currently experiencing high demand... please try again later") on both the initial attempt and one retry.
+- The system correctly detected this and fell back to deterministic telemetry both times (`fallback_used: true`, with a nonzero `llm_latency_sec` of ~9-11s confirming a real network round-trip was attempted, not skipped).
+- Per the "very small number of requests" instruction, no further retries were made in that session.
 
-1. Go to **https://dashboard.render.com/web/srv-dat12fjbc2fs73aot3e0** (the `ev-nexus-backend` service).
-2. Open the **Environment** tab.
-3. Add a variable named exactly `GEMINI_API_KEY` with your key as the value.
-4. Save — Render redeploys automatically.
-5. Come back and ask for one controlled live-Gemini smoke test once it's set — that step still requires your explicit go-ahead per the standing instructions for this project, and was not performed automatically.
+**Conclusion: the key and integration are confirmed correctly configured, but live structured-intent extraction has not yet been confirmed to actually succeed** — the blocker observed was Google's own model availability at that moment, not this project's code or configuration. Retrying later (a single request, e.g. via the "Force fallback" checkbox left unchecked on the live Overview page) is the natural next step to get a full success confirmation.
 
 ## Production Smoke Test Results (this pass)
 
