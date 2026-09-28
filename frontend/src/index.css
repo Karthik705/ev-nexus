@@ -1,0 +1,286 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #020617;
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* ─── Panel base ─────────────────────────────────────────────── */
+.panel {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+}
+
+/* ─── Metric card ────────────────────────────────────────────── */
+.metric-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.metric-card .mc-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+}
+.metric-card .mc-value {
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 1;
+  color: #f1f5f9;
+}
+.metric-card .mc-sub {
+  font-size: 11px;
+  color: #475569;
+}
+
+/* ─── Port card ──────────────────────────────────────────────── */
+.port-card {
+  background: #0a1628;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 16px;
+  flex: 1;
+  min-width: 0;
+  transition: border-color 0.2s;
+}
+.port-card.active {
+  border-color: #0e7490;
+  background: #0a1f2e;
+}
+
+/* ─── Status badge ────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.badge-green  { background: #052e16; color: #4ade80; border: 1px solid #166534; }
+.badge-cyan   { background: #083344; color: #22d3ee; border: 1px solid #0e7490; }
+.badge-amber  { background: #451a03; color: #fb923c; border: 1px solid #92400e; }
+.badge-red    { background: #450a0a; color: #f87171; border: 1px solid #991b1b; }
+.badge-gray   { background: #0f172a; color: #64748b; border: 1px solid #334155; }
+
+/* ─── Progress bar ────────────────────────────────────────────── */
+.progress-track {
+  width: 100%;
+  height: 4px;
+  background: #1e293b;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0e7490, #22d3ee);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+/* ─── Primary button ─────────────────────────────────────────── */
+.btn-primary {
+  background: #0e7490;
+  color: #f0f9ff;
+  border: 1px solid #0891b2;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #0891b2;
+  box-shadow: 0 0 12px rgba(14,116,144,0.35);
+}
+.btn-primary:disabled {
+  background: #1e293b;
+  color: #334155;
+  border-color: #1e293b;
+  cursor: not-allowed;
+}
+
+/* ─── Input / textarea ────────────────────────────────────────── */
+.input-field {
+  width: 100%;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 5px;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 8px 12px;
+  transition: border-color 0.15s;
+  outline: none;
+}
+.input-field:focus {
+  border-color: #0e7490;
+}
+
+/* ─── Section header ─────────────────────────────────────────── */
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #475569;
+  margin-bottom: 10px;
+}
+
+/* ─── Pipeline step ──────────────────────────────────────────── */
+.pipeline-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+.pipeline-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: calc(50% + 18px);
+  top: 13px;
+  right: calc(-50% + 18px);
+  height: 1px;
+  background: #1e293b;
+}
+.pipeline-step.completed:not(:last-child)::after {
+  background: #0e7490;
+}
+.pipeline-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #1e293b;
+  background: #0f172a;
+  color: #475569;
+  transition: all 0.3s;
+}
+.pipeline-step.completed .pipeline-num {
+  background: #0e7490;
+  border-color: #0891b2;
+  color: #f0f9ff;
+}
+.pipeline-step.active .pipeline-num {
+  background: #083344;
+  border-color: #0891b2;
+  color: #22d3ee;
+  animation: pulse-step 1.2s infinite;
+}
+@keyframes pulse-step {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(14,116,144,0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(14,116,144,0); }
+}
+.pipeline-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #475569;
+  text-align: center;
+}
+.pipeline-step.completed .pipeline-label,
+.pipeline-step.active .pipeline-label {
+  color: #94a3b8;
+}
+
+/* ─── Table ──────────────────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table thead th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #475569;
+  border-bottom: 1px solid #1e293b;
+}
+.data-table tbody tr {
+  border-bottom: 1px solid #0f172a;
+  transition: background 0.1s;
+}
+.data-table tbody tr:hover {
+  background: #0f172a;
+}
+.data-table tbody td {
+  padding: 10px 12px;
+  color: #cbd5e1;
+}
+
+/* ─── Fade-in animation ─────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fade-in 0.25s ease forwards;
+}
+
+/* ─── Scenario button ────────────────────────────────────────── */
+.scenario-btn {
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border: 1px solid #1e293b;
+  background: #0f172a;
+  color: #64748b;
+  transition: all 0.15s;
+}
+.scenario-btn:hover:not(:disabled) {
+  border-color: #334155;
+  color: #94a3b8;
+}
+.scenario-btn.active {
+  border-color: #0891b2;
+  background: #083344;
+  color: #22d3ee;
+}
+.scenario-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

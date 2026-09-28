@@ -1,0 +1,26 @@
+# Secrets — never commit real environment files
+.env
+.env.*
+!.env.example
+!frontend/.env.example
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Coverage
+coverage/
+.coverage
+
+# Frontend (frontend/.gitignore also covers these within frontend/; duplicated
+# here so the same rules apply if node_modules/dist ever appear elsewhere)
+node_modules/
+dist/
+dist-ssr/
+
+# OS junk
+.DS_Store
+Thumbs.db

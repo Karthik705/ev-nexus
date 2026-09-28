@@ -1,0 +1,174 @@
+{
+  "raw_results": {
+    "FIFO": [
+      {
+        "total_arrivals": 58,
+        "completed": 7,
+        "still_waiting": 0,
+        "revenue": 671.49,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.0
+      },
+      {
+        "total_arrivals": 59,
+        "completed": 9,
+        "still_waiting": 0,
+        "revenue": 773.69,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.1
+      },
+      {
+        "total_arrivals": 58,
+        "completed": 5,
+        "still_waiting": 0,
+        "revenue": 823.69,
+        "avg_wait_time": 0.01,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.3
+      },
+      {
+        "total_arrivals": 50,
+        "completed": 5,
+        "still_waiting": 0,
+        "revenue": 573.8,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.0
+      },
+      {
+        "total_arrivals": 53,
+        "completed": 8,
+        "still_waiting": 0,
+        "revenue": 689.19,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.0
+      }
+    ],
+    "PRIORITY": [
+      {
+        "total_arrivals": 58,
+        "completed": 7,
+        "still_waiting": 0,
+        "revenue": 671.49,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.0
+      },
+      {
+        "total_arrivals": 59,
+        "completed": 9,
+        "still_waiting": 0,
+        "revenue": 773.69,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.1
+      },
+      {
+        "total_arrivals": 58,
+        "completed": 5,
+        "still_waiting": 0,
+        "revenue": 823.69,
+        "avg_wait_time": 0.01,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.3
+      },
+      {
+        "total_arrivals": 50,
+        "completed": 5,
+        "still_waiting": 0,
+        "revenue": 573.8,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.0
+      },
+      {
+        "total_arrivals": 53,
+        "completed": 8,
+        "still_waiting": 0,
+        "revenue": 689.19,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.0
+      }
+    ],
+    "SJF": [
+      {
+        "total_arrivals": 58,
+        "completed": 7,
+        "still_waiting": 0,
+        "revenue": 671.49,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.0
+      },
+      {
+        "total_arrivals": 59,
+        "completed": 9,
+        "still_waiting": 0,
+        "revenue": 773.69,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.1
+      },
+      {
+        "total_arrivals": 58,
+        "completed": 5,
+        "still_waiting": 0,
+        "revenue": 824.25,
+        "avg_wait_time": 0.01,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.3
+      },
+      {
+        "total_arrivals": 50,
+        "completed": 5,
+        "still_waiting": 0,
+        "revenue": 573.8,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.0
+      },
+      {
+        "total_arrivals": 53,
+        "completed": 8,
+        "still_waiting": 0,
+        "revenue": 689.19,
+        "avg_wait_time": 0.0,
+        "avg_satisfaction": 0.0,
+        "max_wait_time": 0.0
+      }
+    ]
+  },
+  "comparison": [
+    {
+      "policy": "FIFO",
+      "avg_revenue": 706.3720000000001,
+      "avg_completed": 6.8,
+      "avg_wait": 0.002,
+      "avg_satisfaction": 0.0,
+      "std_revenue": 86.46679880740356,
+      "std_wait": 0.004
+    },
+    {
+      "policy": "PRIORITY",
+      "avg_revenue": 706.3720000000001,
+      "avg_completed": 6.8,
+      "avg_wait": 0.002,
+      "avg_satisfaction": 0.0,
+      "std_revenue": 86.46679880740356,
+      "std_wait": 0.004
+    },
+    {
+      "policy": "SJF",
+      "avg_revenue": 706.4840000000002,
+      "avg_completed": 6.8,
+      "avg_wait": 0.002,
+      "avg_satisfaction": 0.0,
+      "std_revenue": 86.61891654829216,
+      "std_wait": 0.004
+    }
+  ]
+}

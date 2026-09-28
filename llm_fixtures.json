@@ -1,0 +1,226 @@
+{
+  "A_HARD_DEADLINE": {
+    "urgency_level": "HIGH",
+    "deadline_minutes": 15,
+    "reason_category": "LATE",
+    "claimed_constraints": [],
+    "requested_port_type": null,
+    "confidence": 0.9,
+    "explanation": "Driver explicitly stated a 15-minute departure deadline, indicating high urgency and a likely need to depart soon.",
+    "source": "gemini_live"
+  },
+  "B_FLEXIBLE": {
+    "urgency_level": "MEDIUM",
+    "deadline_minutes": 60,
+    "reason_category": "CASUAL",
+    "claimed_constraints": [],
+    "requested_port_type": null,
+    "confidence": 0.9,
+    "explanation": "Driver explicitly stated they can wait for an hour, setting a clear deadline and indicating a moderate urgency.",
+    "source": "gemini_live"
+  },
+  "C_FASTEST": {
+    "urgency_level": "HIGH",
+    "deadline_minutes": null,
+    "reason_category": "COMMUTE",
+    "claimed_constraints": [
+      "needs fast charger"
+    ],
+    "requested_port_type": null,
+    "confidence": 0.9,
+    "explanation": "The driver explicitly requested the fastest charging option, indicating a high urgency for their journey without specifying a deadline or port type.",
+    "source": "gemini_live"
+  },
+  "D_CHEAPEST": {
+    "urgency_level": "LOW",
+    "deadline_minutes": null,
+    "reason_category": "COST_SAVING",
+    "claimed_constraints": [
+      "flexible waiting time",
+      "cost-sensitive"
+    ],
+    "requested_port_type": null,
+    "confidence": 0.95,
+    "explanation": "The driver explicitly stated they don't mind waiting and want to minimize charging cost.",
+    "source": "gemini_live"
+  },
+  "E_GENUINE_EMERGENCY": {
+    "urgency_level": "CRITICAL",
+    "deadline_minutes": null,
+    "reason_category": "EMERGENCY",
+    "claimed_constraints": [],
+    "requested_port_type": null,
+    "confidence": 0.95,
+    "explanation": "The driver explicitly states a medical emergency and the need to leave immediately, indicating critical urgency without a specific deadline or other constraints.",
+    "source": "gemini_live"
+  },
+  "F_CONTRADICTORY_EMERGENCY": {
+    "urgency_level": "CRITICAL",
+    "deadline_minutes": null,
+    "reason_category": "EMERGENCY",
+    "claimed_constraints": [
+      "needs priority"
+    ],
+    "requested_port_type": null,
+    "confidence": 0.95,
+    "explanation": "The driver explicitly stated an emergency and requested priority, indicating a critical urgency level.",
+    "source": "gemini_live"
+  },
+  "G_AMBIGUOUS_TRADEOFF": {
+    "urgency_level": "HIGH",
+    "deadline_minutes": null,
+    "reason_category": "LATE",
+    "claimed_constraints": [
+      "needs fast charger",
+      "low budget"
+    ],
+    "requested_port_type": null,
+    "confidence": 0.85,
+    "explanation": "Driver indicated high urgency by being 'in a hurry' and a budget constraint by not wanting to 'spend too much', implying a need for a fast, low-cost charge.",
+    "source": "gemini_live"
+  },
+  "H_LONG_ROADTRIP": {
+    "urgency_level": "MEDIUM",
+    "deadline_minutes": 120,
+    "reason_category": "TRAVEL",
+    "claimed_constraints": [
+      "needs full charge"
+    ],
+    "requested_port_type": null,
+    "confidence": 0.95,
+    "explanation": "The driver is on a road trip, needs a full charge, and explicitly stated a 2-hour waiting capacity.",
+    "source": "gemini_live"
+  },
+  "I_APPOINTMENT": {
+    "urgency_level": "HIGH",
+    "deadline_minutes": 20,
+    "reason_category": "LATE",
+    "claimed_constraints": [
+      "needs fast charger"
+    ],
+    "requested_port_type": null,
+    "confidence": 0.95,
+    "explanation": "The driver explicitly states they are late for an appointment with a 20-minute deadline and needs a quick top-up.",
+    "source": "gemini_live"
+  },
+  "J_NIGHT_SHIFT": {
+    "urgency_level": "LOW",
+    "deadline_minutes": null,
+    "reason_category": "COMMUTE",
+    "claimed_constraints": [],
+    "requested_port_type": null,
+    "confidence": 0.9,
+    "explanation": "Driver states they are working the night shift and can leave the car for 8 hours, indicating a long duration of stay and low urgency for charging.",
+    "source": "gemini_live"
+  },
+  "K_BUDGET_STRICT": {
+    "urgency_level": "LOW",
+    "deadline_minutes": null,
+    "reason_category": "BUDGET",
+    "claimed_constraints": [
+      "low budget"
+    ],
+    "requested_port_type": null,
+    "confidence": 0.9,
+    "explanation": "Driver explicitly stated a budget constraint of $10 and no other specific requirements or urgency.",
+    "source": "gemini_live"
+  },
+  "L_BABY_IN_CAR": {
+    "urgency_level": "CRITICAL",
+    "deadline_minutes": null,
+    "reason_category": "EMERGENCY",
+    "claimed_constraints": [
+      "needs fastest charger"
+    ],
+    "requested_port_type": null,
+    "confidence": 0.9,
+    "explanation": "The driver has a crying baby and needs to leave ASAP, explicitly requesting the fastest port, indicating a critical and urgent situation.",
+    "source": "gemini_live"
+  },
+  "M_FLIGHT": {
+    "urgency_level": "HIGH",
+    "deadline_minutes": 80,
+    "reason_category": "TRAVEL",
+    "claimed_constraints": [],
+    "requested_port_type": null,
+    "confidence": 0.95,
+    "explanation": "Driver has a flight in 2 hours and needs to travel 40 minutes to the airport, setting a high-priority deadline for charging.",
+    "source": "gemini_live"
+  },
+  "N_LOW_BATTERY_PANIC": {
+    "urgency_level": "CRITICAL",
+    "deadline_minutes": null,
+    "reason_category": "EMERGENCY",
+    "claimed_constraints": [],
+    "requested_port_type": null,
+    "confidence": 0.9,
+    "explanation": "The driver explicitly states 1% battery and fear of the car dying, indicating a critical need for immediate charging.",
+    "source": "gemini_live"
+  },
+  "O_GROCERY": {
+    "urgency_level": "LOW",
+    "deadline_minutes": 45,
+    "reason_category": "CASUAL",
+    "claimed_constraints": [],
+    "requested_port_type": null,
+    "confidence": 0.95,
+    "explanation": "The driver is making a casual stop at a grocery store and expects to be away for approximately 45 minutes.",
+    "source": "gemini_live"
+  },
+  "P_MOVIE": {
+    "urgency_level": "LOW",
+    "deadline_minutes": 180,
+    "reason_category": "CASUAL",
+    "claimed_constraints": [],
+    "requested_port_type": null,
+    "confidence": 0.95,
+    "explanation": "Driver is watching a movie and stated they will return in 3 hours (180 minutes).",
+    "source": "gemini_live"
+  },
+  "Q_UBER_DRIVER": {
+    "urgency_level": "HIGH",
+    "deadline_minutes": null,
+    "reason_category": "RIDESHARE",
+    "claimed_constraints": [],
+    "requested_port_type": null,
+    "confidence": 0.85,
+    "explanation": "The driver expresses high urgency due to financial loss while waiting on the job, but does not provide specific technical constraints or an exact deadline.",
+    "source": "gemini_live"
+  },
+  "R_DELIVERY": {
+    "urgency_level": "HIGH",
+    "deadline_minutes": 30,
+    "reason_category": "DELIVERY",
+    "claimed_constraints": [
+      "commercial delivery vehicle",
+      "must finish route",
+      "30 minutes maximum duration"
+    ],
+    "requested_port_type": null,
+    "confidence": 0.95,
+    "explanation": "The delivery driver explicitly specifies a strict 30-minute time limit to obtain enough charge to finish their active delivery route.",
+    "source": "gemini_live"
+  },
+  "S_CASUAL_COFFEE": {
+    "urgency_level": "LOW",
+    "deadline_minutes": null,
+    "reason_category": "CASUAL",
+    "claimed_constraints": [],
+    "requested_port_type": null,
+    "confidence": 0.95,
+    "explanation": "The driver explicitly stated they are getting coffee and in no rush, indicating a low-urgency casual stop.",
+    "source": "gemini_live"
+  },
+  "T_WIFE_LABOR": {
+    "urgency_level": "CRITICAL",
+    "deadline_minutes": null,
+    "reason_category": "EMERGENCY",
+    "claimed_constraints": [
+      "fastest charge"
+    ],
+    "requested_port_type": null,
+    "confidence": 0.95,
+    "explanation": "Driver reported an active medical emergency requiring immediate, maximum-speed charging without a specific numeric deadline.",
+    "source": "gemini_live"
+  }
+}
