@@ -1,6 +1,20 @@
-# EV NEXUS — LLM-Assisted EV Charging Negotiator
+# EV NEXUS
+
+### LLM-Assisted EV Charging Negotiation & Resource-Aware Scheduling
+
+**Live Demo:** not yet deployed — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the prepared, ready-to-run deployment steps.
+**GitHub:** not yet published — this repository has not been pushed to a remote yet.
+**Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 An EV charging station simulator that accepts natural-language driver requests, extracts structured intent with Gemini, validates that intent against real telemetry (so the LLM can never override physical safety constraints), and dispatches EVs to charging ports with a resource-aware priority scheduler. Includes a React operations dashboard, a full FastAPI backend, a reproducible policy-comparison benchmark suite, and an experimental DQN baseline.
+
+| | |
+|---|---|
+| **LLM** | Gemini extracts natural-language driver intent — it interprets, it never decides. |
+| **Safety** | A deterministic validator cross-checks every LLM claim against real telemetry before it can affect priority. |
+| **Scheduling** | A deterministic, resource-aware scheduler — not the LLM and not DQN — makes every production dispatch decision. |
+| **RL** | DQN was investigated experimentally and is retained as a documented, underperforming baseline — not a production component. |
+| **Fallback** | The system continues to function deterministically whenever Gemini is unavailable, rate-limited, or returns malformed output. |
 
 ## Table of Contents
 
@@ -244,12 +258,14 @@ There is no automated frontend test suite (no `*.test.tsx` files) and no browser
 
 ## Deployment
 
-This repository is configured for deployment (configurable frontend API URL, environment-based secrets, allowlisted CORS) but **has not been deployed** as of this pass — there is no live URL. See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for the prepared deployment steps and what remains to be done by a human with hosting-provider access.
+This repository is fully prepared for deployment — `requirements.txt`, a Render Blueprint (`render.yaml`), a configurable frontend API URL, environment-based secrets, and a real health endpoint all exist — but it **has not been deployed** as of this pass; there is no live URL yet. The simplest path: push to GitHub, deploy the backend as a Render Blueprint (free, no credit card), deploy the frontend to Cloudflare Pages (free, no credit card) with `VITE_API_BASE` pointed at the Render URL, then set the backend's `ALLOWED_ORIGINS` to the Cloudflare Pages URL. Full step-by-step instructions: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
 ## Project Structure
 
 ```
 ├── app.py                          # FastAPI backend (per-session state, health check, hardened CORS)
+├── requirements.txt                # Pinned backend dependencies (for deployment)
+├── render.yaml                     # Render Blueprint — one-click backend deployment config
 ├── simple_ev_simulation.py         # Core EV charging simulation (canonical scheduler + simulator)
 ├── llm_negotiator.py               # Gemini API wrapper with call counters and error classification
 ├── constraint_validator.py         # Lie detector + feasibility/budget checker
