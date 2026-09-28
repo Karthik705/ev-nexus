@@ -2,9 +2,14 @@
 
 ### LLM-Assisted EV Charging Negotiation & Resource-Aware Scheduling
 
-**Live Demo:** not yet deployed — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the prepared, ready-to-run deployment steps.
-**GitHub:** not yet published — this repository has not been pushed to a remote yet.
+**Live Demo:** [ev-nexus.pages.dev](https://ev-nexus.pages.dev)
+**Backend API:** [ev-nexus-backend.onrender.com](https://ev-nexus-backend.onrender.com) · [health check](https://ev-nexus-backend.onrender.com/api/health)
+**GitHub:** [github.com/Karthik705/ev-nexus](https://github.com/Karthik705/ev-nexus)
 **Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+> The backend runs on Render's free tier, which spins down after 15 minutes of inactivity — the first request after a period of idleness can take 30–60 seconds to wake it up. This is a known, documented free-tier trade-off (see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)), not a bug.
+>
+> Gemini live status: the deployed backend currently runs on **deterministic fallback** (no `GEMINI_API_KEY` configured on the host yet). The "Force fallback" toggle in the UI reflects this either way — every negotiation is fully functional regardless.
 
 An EV charging station simulator that accepts natural-language driver requests, extracts structured intent with Gemini, validates that intent against real telemetry (so the LLM can never override physical safety constraints), and dispatches EVs to charging ports with a resource-aware priority scheduler. Includes a React operations dashboard, a full FastAPI backend, a reproducible policy-comparison benchmark suite, and an experimental DQN baseline.
 
@@ -258,7 +263,15 @@ There is no automated frontend test suite (no `*.test.tsx` files) and no browser
 
 ## Deployment
 
-This repository is fully prepared for deployment — `requirements.txt`, a Render Blueprint (`render.yaml`), a configurable frontend API URL, environment-based secrets, and a real health endpoint all exist — but it **has not been deployed** as of this pass; there is no live URL yet. The simplest path: push to GitHub, deploy the backend as a Render Blueprint (free, no credit card), deploy the frontend to Cloudflare Pages (free, no credit card) with `VITE_API_BASE` pointed at the Render URL, then set the backend's `ALLOWED_ORIGINS` to the Cloudflare Pages URL. Full step-by-step instructions: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+**Live and deployed, ₹0 cost:**
+
+| Service | Provider | URL |
+|---|---|---|
+| Frontend | Cloudflare Pages (free tier) | [ev-nexus.pages.dev](https://ev-nexus.pages.dev) |
+| Backend | Render (free tier) | [ev-nexus-backend.onrender.com](https://ev-nexus-backend.onrender.com) |
+| Health check | — | [/api/health](https://ev-nexus-backend.onrender.com/api/health) |
+
+Production CORS is locked to the exact frontend origin (`ALLOWED_ORIGINS=https://ev-nexus.pages.dev` — no wildcard). Full deployment methodology, redeploy instructions, and current known limitations (free-tier cold starts, Gemini key not yet configured on the host): **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
 ## Project Structure
 

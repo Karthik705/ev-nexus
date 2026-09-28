@@ -1,17 +1,17 @@
 # EV NEXUS — Current Project Status (Checkpoint)
 
-This is the up-to-date resumable checkpoint, current as of the "ship to GitHub + free public deployment" pass. Prior history: `PROJECT_STATUS_AUDIT.md` (Phase 1 read-only audit), `docs/PHASE_1_5_CLEANUP.md` (hygiene cleanup), `docs/DQN_PROVENANCE.md` (DQN checkpoint investigation), and this file's own prior version (finalization pass: bug fixes, docs, local `git init`).
+Current as of the "take over deployment" pass, in which GitHub CLI, Render CLI, and Cloudflare Wrangler were installed and authenticated (via browser one-time device-code flows — no secrets typed into chat), and both services were deployed directly from this session. Prior history: `PROJECT_STATUS_AUDIT.md`, `docs/PHASE_1_5_CLEANUP.md`, `docs/DQN_PROVENANCE.md`, and this file's prior versions (finalization pass, deployment-prep pass).
 
 ## Live URLs
 
 | Service | URL |
 |---|---|
-| GitHub | **Not yet published.** No remote exists — `git remote -v` returns nothing. Creating and pushing to a GitHub repository requires a browser-based signup/OAuth flow this session cannot perform (no `gh` CLI installed, no browser tool available). Exact steps for you: `docs/DEPLOYMENT.md`. |
-| Frontend | **Not deployed.** No Cloudflare Pages account was created (requires browser signup). |
-| Backend | **Not deployed.** No Render account was created (requires browser signup). |
-| Health | **N/A** — depends on the backend URL above. |
+| GitHub | [github.com/Karthik705/ev-nexus](https://github.com/Karthik705/ev-nexus) — public |
+| Frontend | [ev-nexus.pages.dev](https://ev-nexus.pages.dev) (Cloudflare Pages, free tier) |
+| Backend | [ev-nexus-backend.onrender.com](https://ev-nexus-backend.onrender.com) (Render, free tier) |
+| Health | [ev-nexus-backend.onrender.com/api/health](https://ev-nexus-backend.onrender.com/api/health) → `{"status":"ok"}` |
 
-Nothing above is fabricated. This pass fully **prepared** the repository for one-command deployment on both services once you complete the account-bound steps in `docs/DEPLOYMENT.md`.
+All real, all verified live in this pass. Total hosting cost: **₹0** — no credit card entered anywhere, no paid plan selected.
 
 ## Final Status Table
 
@@ -19,45 +19,39 @@ Values are strictly one of: **PASS**, **PARTIAL**, **UNVERIFIED**, **BLOCKED**.
 
 | Area | Status | Evidence |
 |---|---|---|
-| Backend | PASS (local) | `uvicorn app:app` boots cleanly; all 7 routes verified via `curl` this pass, including `/api/health` (new). Not yet PASS *in production* because it isn't deployed — see Deployment row. |
-| Frontend | PASS (local build) | `npm run build` — 0 TypeScript errors, re-run after every change this pass. Not yet PASS *in production* — see Deployment row. |
-| API | PASS | Request validation (422s), error handling, and all endpoint behaviors re-verified live this pass with no regressions. |
-| Gemini integration | UNVERIFIED | No live Gemini call has been made in this environment at any point across all passes of this project, by explicit instruction. This remains the single largest unresolved verification gap. Deploying and adding a real key to Render (per `docs/DEPLOYMENT.md`) is the next concrete step toward resolving this — but that live smoke test still requires your authorization once the key is in place. |
-| Deterministic fallback | PASS | Re-verified live this pass (`force_fallback:true` → correct telemetry-tier priority, `fallback_used:true`); also unit-tested. |
-| Safety validation | PASS | Lie-detector re-verified live this pass with a claimed-`CRITICAL`-at-85%-SOC case → correctly downgraded, `contradiction_found:true`; also boundary-unit-tested at 60%/61%. |
-| Scheduling | PASS | Resource-aware port matching and queueing re-verified live this pass. |
-| DQN | PASS (as documented) | Confirmed isolated from the interactive app (`app.py` never imports it); README/UI/docs consistently frame it as an experimental, underperforming baseline — never claimed to outperform classical methods. Checkpoint provenance: PARTIAL — see `docs/DQN_PROVENANCE.md` (v5 fully verified; v4 partially; v1–v3 orphaned). |
-| Benchmarks | PASS | `phase5_results.json` numbers re-verified against the README via `scripts/read_results.py`; UI and docs consistently label this data as historical/fixture-based, never live. No historical numbers were altered in any pass. |
-| Browser E2E | UNVERIFIED | No browser automation tool available in this or any prior pass of this project. Explicitly not claimed as tested. |
-| Tests | PASS | `pytest tests/` → 10/10, re-run multiple times this pass with no regressions. No frontend automated test suite exists (stated as a limitation, not hidden). |
-| Security | PASS | Full repo-wide and git-staged-content secret scans this pass: 0 findings. `.env` gitignored and untouched; `.env.example` (root + frontend) safe; `GEMINI_API_KEY` never present in any `VITE_*` variable or frontend file; `render.yaml`'s secrets are `sync:false` (dashboard-only, nothing committed). |
-| GitHub | BLOCKED | Repository is fully committed locally (3 commits, 85 files, clean tree) and ready to push, but publishing requires you to create the repo on github.com and authenticate the push yourself — see the exact commands in `docs/DEPLOYMENT.md` §1. |
-| Deployment | BLOCKED | Fully prepared (`requirements.txt`, `render.yaml`, configurable `VITE_API_BASE`, configurable `ALLOWED_ORIGINS`, real `/api/health`) but not deployed — both Render and Cloudflare Pages require browser-based account creation only you can do. Exact steps: `docs/DEPLOYMENT.md` §2–4. |
-| Documentation | PASS | README rewritten with a recruiter-facing header; `docs/ARCHITECTURE.md`, `docs/EXPERIMENTS.md`, `docs/TEST_REPORT.md`, `docs/DEPLOYMENT.md`, `docs/RESUME_SUMMARY.md`, `docs/DQN_PROVENANCE.md` all present and cross-referenced correctly. No screenshots exist and none were fabricated — explicitly noted as unavailable (no browser tool to capture them). |
+| Backend | PASS (deployed) | Live at the URL above; `/api/health`, `/api/negotiate`, `/api/station`, `/api/step`, `/api/reset`, `/api/benchmarks` all smoke-tested directly against production this pass. |
+| Frontend | PASS (deployed) | Live at the URL above, `HTTP 200`, correct title, production backend URL confirmed baked into the shipped JS bundle. |
+| API | PASS | All production smoke tests passed — see `docs/DEPLOYMENT.md`. |
+| Gemini integration | UNVERIFIED | `GEMINI_API_KEY` is deliberately not set on the deployed backend — never read, transmitted, or typed anywhere in this session. Backend runs fully on deterministic fallback in production right now. Exact one-time action for you to change this: `docs/DEPLOYMENT.md` §"GEMINI_API_KEY." |
+| Deterministic fallback | PASS | Verified in production: `force_fallback:true` request against the live backend returned the correct telemetry-tier response. |
+| Safety validation | PASS | Lie-detector logic unchanged from the already-verified local build; same code now running in production. |
+| Scheduling | PASS | Verified in production: resource-aware port assignment and the target-SOC fix (`target_soc: 80.0` for a non-80kWh battery) both confirmed correct live. |
+| DQN | PASS (as documented) | No change this pass; still isolated from the interactive app, framed consistently as an experimental baseline. See `docs/DQN_PROVENANCE.md`. |
+| Benchmarks | PASS | `/api/benchmarks` on the live backend correctly serves both allowlisted historical result files. |
+| Browser E2E | UNVERIFIED | Still no browser automation tool available in this session. The production frontend was verified via `curl` (HTTP 200, correct HTML/title) and by confirming the JS bundle targets the correct backend — not the same as real interactive browser testing, which remains genuinely untested. |
+| Tests | PASS | `pytest tests/` → 10/10, re-confirmed at the start of this pass before any deployment action. |
+| Security | PASS, with one noted caution | Full secret scans clean throughout. `.env`/`GEMINI_API_KEY` never touched. **One caution:** while inspecting the Render CLI's local config during troubleshooting, a `cat` of its config file inadvertently displayed the Render account's own CLI API token in this session's terminal output. This is not your Gemini key and was not exposed publicly, but rotating that specific Render API key via Render's dashboard (Account Settings → API Keys) is a reasonable precaution — noted in `docs/DEPLOYMENT.md`. |
+| GitHub | PASS | Public, pushed, verified via the public GitHub API (`private: false`, correct `pushed_at`). |
+| Deployment | PASS | Both services live, CORS locked to the exact frontend origin (no wildcard), health check verified correct after fixing a Git-Bash path-mangling issue encountered mid-deployment (documented in `docs/DEPLOYMENT.md` so it doesn't recur). |
+| Documentation | PASS | README, `docs/ARCHITECTURE.md`, `docs/EXPERIMENTS.md`, `docs/TEST_REPORT.md`, `docs/DEPLOYMENT.md`, `docs/RESUME_SUMMARY.md`, `docs/DQN_PROVENANCE.md` all present, cross-referenced, and updated with real URLs this pass. |
 
-## What This Pass Added (on top of the prior finalization pass)
+## What Was Automated in This Pass (no manual steps needed from you for any of it)
 
-- `requirements.txt` — pinned backend dependencies, verified against the actual installed environment.
-- `render.yaml` — a Render Blueprint for one-click, reproducible backend deployment; declares `GEMINI_API_KEY` and `ALLOWED_ORIGINS` as dashboard-only secrets (`sync: false`), contains no secret values.
-- `docs/DEPLOYMENT.md` — fully rewritten with providers chosen from live, current (September 2026) research — Render (backend) and Cloudflare Pages (frontend), both genuinely free with no credit card and no known surprise-billing exposure — plus exact, copy-pasteable steps for every account-bound action.
-- `README.md` — added a recruiter-facing header (title, one-line description, Live Demo/GitHub/Architecture links — left honestly as "not yet deployed/published" rather than fabricated, plus a compact LLM/Safety/Scheduling/RL/Fallback summary table) and updated the Deployment and Project Structure sections.
-- Two more local commits (3 total now), each preceded by a dedicated secret scan of the new/changed files.
+- Installed `gh` (GitHub CLI) and the official Render CLI via `winget` (free, official sources).
+- Authenticated GitHub, Cloudflare (`wrangler`), and Render via each tool's own browser-based device-code login — you only needed to click "Authorize" in windows that opened on your own machine; nothing was typed into this chat.
+- Discovered and pushed 2 new local commits to the already-existing `github.com/Karthik705/ev-nexus` repo (it turned out you'd already created and pushed the repo from the previous session's instructions — this pass found that, verified it publicly, and pushed the commits made since).
+- Created and deployed the Cloudflare Pages project (`ev-nexus`), including recovering cleanly after `wrangler`'s default command auto-delegated to an unwanted "Pages via Workers" flow and modified frontend config files — those were reverted before proceeding with the classic Pages flow instead.
+- Created and deployed the Render web service (`ev-nexus-backend`) via direct CLI flags (build/start commands, health check, free plan, `ALLOWED_ORIGINS`).
+- Diagnosed and fixed a Git-Bash-specific path-mangling bug that broke the health check, including discovering that a plain redeploy didn't clear Render's cached internal health-check state and a service **restart** was required.
+- Ran a full production smoke test against both live URLs (health, CORS preflight, reset, negotiate/fallback, station, step, benchmarks) — all passed.
+- Rebuilt and redeployed the frontend against the real production backend URL, confirmed via direct inspection of the shipped bundle.
+- Updated README and `docs/DEPLOYMENT.md` with real, verified URLs — no fabricated links.
 
-## Why GitHub Publishing and Deployment Are Genuinely Blocked, Not Skipped
+## What Still Requires Your Action
 
-Checked directly in this session:
-- `gh --version` → not installed.
-- `git config --global credential.helper` → empty (no stored credential for a non-interactive push).
-- No browser automation tool or MCP browser tool available to this session (confirmed in the prior pass and unchanged).
+1. **Add `GEMINI_API_KEY` to Render's dashboard** (exact URL and steps in `docs/DEPLOYMENT.md`) if you want live Gemini — deliberately not done automatically.
+2. **Authorize one controlled live-Gemini smoke test** once that key is set.
+3. Optional: rotate the Render account API key as a precaution (see Security row above and `docs/DEPLOYMENT.md`).
+4. Optional: confirm/rotate the original Gemini key in Google AI Studio if its historical exposure status is still a concern — unrelated to and independent of everything above.
 
-A `git push` to a brand-new GitHub remote, or creating an account on Render/Cloudflare Pages, requires an interactive login (OAuth popup or credential entry) that a headless CLI session cannot complete. Attempting it would either hang indefinitely waiting for input, or fail outright — neither of which this report will pretend succeeded.
-
-## Exact Remaining Actions (only you can perform these)
-
-1. Create the GitHub repo (`ev-nexus`, public, no auto-generated files) and run the 3 `git` commands in `docs/DEPLOYMENT.md` §1 to push.
-2. Sign up for Render (no card needed) and deploy via Blueprint using the pushed repo — `docs/DEPLOYMENT.md` §2. Enter `GEMINI_API_KEY` directly into Render's dashboard if/when you want live Gemini tested (never paste it here).
-3. Sign up for Cloudflare Pages (no card needed) and deploy the frontend with `VITE_API_BASE` set to your Render URL — `docs/DEPLOYMENT.md` §3.
-4. Set the backend's `ALLOWED_ORIGINS` to your real Cloudflare Pages URL — `docs/DEPLOYMENT.md` §4.
-5. Run the production smoke test in `docs/DEPLOYMENT.md` §5 yourself (open the URLs in your own browser).
-6. Optionally, come back and ask for one controlled live-Gemini smoke test once the key is in place on Render — that single step is the only thing separating "Gemini integration: UNVERIFIED" from "PASS."
-7. Confirm/rotate the Gemini key in Google AI Studio if its exposure status is still a concern — unrelated to and independent of the steps above.
+No paid services were used, no billing was activated, and `.env`/`GEMINI_API_KEY` were never read, printed, or transmitted at any point in this pass.
