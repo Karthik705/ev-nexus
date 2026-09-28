@@ -1,6 +1,17 @@
 # EV NEXUS — Current Project Status (Checkpoint)
 
-This is the up-to-date resumable checkpoint. Prior checkpoints/history: `PROJECT_STATUS_AUDIT.md` (Phase 1 read-only audit), `docs/PHASE_1_5_CLEANUP.md` (hygiene cleanup), `docs/DQN_PROVENANCE.md` (DQN checkpoint investigation). This file's older sections below the final status table are kept for continuity; the table itself is the authoritative current-state summary as of the most recent finalization pass.
+This is the up-to-date resumable checkpoint, current as of the "ship to GitHub + free public deployment" pass. Prior history: `PROJECT_STATUS_AUDIT.md` (Phase 1 read-only audit), `docs/PHASE_1_5_CLEANUP.md` (hygiene cleanup), `docs/DQN_PROVENANCE.md` (DQN checkpoint investigation), and this file's own prior version (finalization pass: bug fixes, docs, local `git init`).
+
+## Live URLs
+
+| Service | URL |
+|---|---|
+| GitHub | **Not yet published.** No remote exists — `git remote -v` returns nothing. Creating and pushing to a GitHub repository requires a browser-based signup/OAuth flow this session cannot perform (no `gh` CLI installed, no browser tool available). Exact steps for you: `docs/DEPLOYMENT.md`. |
+| Frontend | **Not deployed.** No Cloudflare Pages account was created (requires browser signup). |
+| Backend | **Not deployed.** No Render account was created (requires browser signup). |
+| Health | **N/A** — depends on the backend URL above. |
+
+Nothing above is fabricated. This pass fully **prepared** the repository for one-command deployment on both services once you complete the account-bound steps in `docs/DEPLOYMENT.md`.
 
 ## Final Status Table
 
@@ -8,54 +19,45 @@ Values are strictly one of: **PASS**, **PARTIAL**, **UNVERIFIED**, **BLOCKED**.
 
 | Area | Status | Evidence |
 |---|---|---|
-| Backend (FastAPI boots, all routes respond) | PASS | `uvicorn app:app` started cleanly this pass; all 7 routes (`/health`, `/negotiate`, `/station`, `/step`, `/reset`, `/new-session`, `/benchmarks`) exercised via `curl` — see `docs/TEST_REPORT.md`. |
-| Frontend (builds, wired to real backend) | PASS | `npm run build` — 0 TypeScript errors, repeated after every change this pass. Every page's API calls traced to real `api.ts` methods, not mock data (see `docs/ARCHITECTURE.md`). |
-| API (request validation, error handling) | PASS | 422 returned correctly for missing fields, out-of-range SOC, blank message, negative budget — all tested live this pass. |
-| LLM integration (code path, wiring, error classification) | PASS (code-level) | `llm_negotiator.py` reviewed and its error classifier verified in code; wired correctly end-to-end into `/api/negotiate`. |
-| LLM integration (a live Gemini call succeeding today) | UNVERIFIED | No live Gemini call was made in this pass or any prior audit pass, by explicit instruction. This is the single largest unresolved verification gap in the project. |
-| Deterministic fallback | PASS | `force_fallback:true` tested live this pass — correct telemetry-tier urgency, correct `fallback_used:true`; also unit-tested (`test_negotiate_no_client_returns_fallback`). |
-| Safety validation (lie detector) | PASS | Unit-tested at exact 60%/61% SOC boundaries; re-verified live this pass with a claimed-`CRITICAL`-at-85%-SOC case → correctly downgraded with `contradiction_found:true`. |
-| Scheduler (resource-aware port matching, queueing) | PASS | Live-tested this pass with mixed-speed EVs against mixed-speed ports — correct closest-match assignment; 4th EV over 3 ports correctly queued. |
-| Charging completion | PASS (after fix) | Bug found and fixed this pass (target SOC could exceed 100% for batteries <80kWh); re-verified live — EV now reaches target and completes without overshoot. See `docs/TEST_REPORT.md`. |
-| Budget enforcement + truthful reporting | PASS (after fix) | Bug found and fixed this pass (over-budget requests were silently dropped but reported as `"WAITING"`); now correctly reported as `"REJECTED_BUDGET"`, re-verified live, and the frontend updated to show this state honestly. |
-| DQN (experimental baseline, isolated from production) | PASS | Confirmed `app.py` never imports the DQN module; only `experiment_comparison.py` and the standalone `controlled_scenarios.py` touch it. Framing throughout README/UI/docs is consistently "experimental baseline," never "best" or "production." |
-| DQN checkpoint provenance | PARTIAL | `ev_dqn_model_v5.pth`: PASS/verified (architecture match, direct load test, training script identified). `_v4.pth`: partially verified (loads, has one real code reference, but training provenance undocumented). `ev_dqn_model.pth`, `_v2`, `_v3`: orphaned, incompatible with current architecture, training environment lost. Full detail: `docs/DQN_PROVENANCE.md`. |
-| Benchmarks (data integrity, honest labeling) | PASS | `phase5_results.json` numbers re-verified via `scripts/read_results.py` to match the README exactly. UI labels data as "Fixture-based LLM replay... source: phase5_results.json" — never presented as live. No historical numbers were altered. |
-| Browser E2E | UNVERIFIED | No browser automation tooling (Playwright/Puppeteer/MCP browser tool) was available in this environment — confirmed by direct check this pass. The equivalent user journey was verified at the API level and via source inspection only; this is explicitly not the same as real browser verification. |
-| Tests (backend pytest) | PASS | 10/10, re-run after every backend change this pass, most recently `10 passed in 11.89s`. |
-| Tests (frontend automated) | UNVERIFIED / MISSING | No `*.test.tsx` files exist in the repository. Not added this pass (out of scope — would be a new feature, not a fix). |
-| Security (secrets, CORS, key exposure) | PASS | Full repo-wide secret scan this pass: 0 real key material found anywhere, including `frontend/dist`. `.env` gitignored and untouched; `.env.example` (root + frontend) safe and trackable. CORS defaults to localhost-only, configurable via `ALLOWED_ORIGINS`. One prior misconfiguration (`.gitignore` accidentally excluding `.env.example`) was fixed in Phase 1.5. |
-| Security (prior key revocation) | BLOCKED | Cannot be verified or acted on from this repository — requires the user to check/act directly in the Google AI Studio console. |
-| GitHub readiness | PASS | `git init` performed this pass (repo had none before); 83 files staged and committed after a dedicated staged-content secret scan (0 findings); `.env`, `node_modules`, `dist`, `__pycache__`, `.pytest_cache`, and the old `frontend-temp` copy all correctly absent from the commit. Single local commit exists; **not pushed anywhere** (no remote configured, none created). |
-| Deployment readiness | PARTIAL | Frontend backend URL is now configurable (`VITE_API_BASE`), backend secrets are environment-based, CORS is configurable, and a real `/api/health` endpoint exists. **Not actually deployed** — no hosting account was created, no URL exists. See `docs/DEPLOYMENT.md`. |
-| Documentation | PASS | `README.md` rewritten to cover all requested sections; `docs/ARCHITECTURE.md`, `docs/EXPERIMENTS.md`, `docs/TEST_REPORT.md`, `docs/DEPLOYMENT.md`, `docs/RESUME_SUMMARY.md`, `docs/DQN_PROVENANCE.md` all created/updated this pass. All cross-referenced files confirmed to exist (`ls docs/` checked). No screenshots exist, so none were fabricated or referenced. |
+| Backend | PASS (local) | `uvicorn app:app` boots cleanly; all 7 routes verified via `curl` this pass, including `/api/health` (new). Not yet PASS *in production* because it isn't deployed — see Deployment row. |
+| Frontend | PASS (local build) | `npm run build` — 0 TypeScript errors, re-run after every change this pass. Not yet PASS *in production* — see Deployment row. |
+| API | PASS | Request validation (422s), error handling, and all endpoint behaviors re-verified live this pass with no regressions. |
+| Gemini integration | UNVERIFIED | No live Gemini call has been made in this environment at any point across all passes of this project, by explicit instruction. This remains the single largest unresolved verification gap. Deploying and adding a real key to Render (per `docs/DEPLOYMENT.md`) is the next concrete step toward resolving this — but that live smoke test still requires your authorization once the key is in place. |
+| Deterministic fallback | PASS | Re-verified live this pass (`force_fallback:true` → correct telemetry-tier priority, `fallback_used:true`); also unit-tested. |
+| Safety validation | PASS | Lie-detector re-verified live this pass with a claimed-`CRITICAL`-at-85%-SOC case → correctly downgraded, `contradiction_found:true`; also boundary-unit-tested at 60%/61%. |
+| Scheduling | PASS | Resource-aware port matching and queueing re-verified live this pass. |
+| DQN | PASS (as documented) | Confirmed isolated from the interactive app (`app.py` never imports it); README/UI/docs consistently frame it as an experimental, underperforming baseline — never claimed to outperform classical methods. Checkpoint provenance: PARTIAL — see `docs/DQN_PROVENANCE.md` (v5 fully verified; v4 partially; v1–v3 orphaned). |
+| Benchmarks | PASS | `phase5_results.json` numbers re-verified against the README via `scripts/read_results.py`; UI and docs consistently label this data as historical/fixture-based, never live. No historical numbers were altered in any pass. |
+| Browser E2E | UNVERIFIED | No browser automation tool available in this or any prior pass of this project. Explicitly not claimed as tested. |
+| Tests | PASS | `pytest tests/` → 10/10, re-run multiple times this pass with no regressions. No frontend automated test suite exists (stated as a limitation, not hidden). |
+| Security | PASS | Full repo-wide and git-staged-content secret scans this pass: 0 findings. `.env` gitignored and untouched; `.env.example` (root + frontend) safe; `GEMINI_API_KEY` never present in any `VITE_*` variable or frontend file; `render.yaml`'s secrets are `sync:false` (dashboard-only, nothing committed). |
+| GitHub | BLOCKED | Repository is fully committed locally (3 commits, 85 files, clean tree) and ready to push, but publishing requires you to create the repo on github.com and authenticate the push yourself — see the exact commands in `docs/DEPLOYMENT.md` §1. |
+| Deployment | BLOCKED | Fully prepared (`requirements.txt`, `render.yaml`, configurable `VITE_API_BASE`, configurable `ALLOWED_ORIGINS`, real `/api/health`) but not deployed — both Render and Cloudflare Pages require browser-based account creation only you can do. Exact steps: `docs/DEPLOYMENT.md` §2–4. |
+| Documentation | PASS | README rewritten with a recruiter-facing header; `docs/ARCHITECTURE.md`, `docs/EXPERIMENTS.md`, `docs/TEST_REPORT.md`, `docs/DEPLOYMENT.md`, `docs/RESUME_SUMMARY.md`, `docs/DQN_PROVENANCE.md` all present and cross-referenced correctly. No screenshots exist and none were fabricated — explicitly noted as unavailable (no browser tool to capture them). |
 
-## Files Changed This Pass
+## What This Pass Added (on top of the prior finalization pass)
 
-- `app.py` — added `GET /api/health`; fixed `target_battery` to be 80% of the vehicle's own capacity instead of a hardcoded absolute 80; added `REJECTED_BUDGET` status to distinguish genuine queueing from silent budget-based rejection.
-- `simple_ev_simulation.py` — fixed `generate_random_ev()`'s `target_battery` to scale with `max_battery` instead of being an independent absolute value.
-- `frontend/src/api.ts` — added `VITE_API_BASE` configurability (from the prior session) and `checkHealth()`.
-- `frontend/src/App.tsx` — sidebar and top bar status indicators now reflect a real `/api/health` poll instead of a hardcoded "always online" state.
-- `frontend/src/pages/OverviewPage.tsx` — `SchedulerPanel` now shows a distinct "Rejected" state for `REJECTED_BUDGET`; `handleNegotiate` no longer starts the charging-simulation loop or shows a false "Complete" banner for a rejected request.
-- `frontend/src/pages/AnalyticsPage.tsx` — added a visible error banner (previously only logged to console).
-- `frontend/src/pages/ArchitecturePage.tsx` — added `/api/health` to the documented route list.
-- `.gitignore` — rewritten to comprehensively cover secrets, Python/frontend artifacts, and OS junk; the DQN checkpoints are now trackable (previously only `ev_dqn_model.pth` was inconsistently excluded — now all five are treated the same, consistent with `docs/DQN_PROVENANCE.md` documenting all of them).
-- `README.md` — comprehensive rewrite covering all requested sections (features, architecture, stack, LLM usage, safety, scheduling, DQN, benchmarks, results, limitations, setup, env vars, API endpoints, testing, deployment, structure, future work).
-- New: `docs/ARCHITECTURE.md`, `docs/EXPERIMENTS.md`, `docs/TEST_REPORT.md`, `docs/DEPLOYMENT.md`, `docs/RESUME_SUMMARY.md`.
+- `requirements.txt` — pinned backend dependencies, verified against the actual installed environment.
+- `render.yaml` — a Render Blueprint for one-click, reproducible backend deployment; declares `GEMINI_API_KEY` and `ALLOWED_ORIGINS` as dashboard-only secrets (`sync: false`), contains no secret values.
+- `docs/DEPLOYMENT.md` — fully rewritten with providers chosen from live, current (September 2026) research — Render (backend) and Cloudflare Pages (frontend), both genuinely free with no credit card and no known surprise-billing exposure — plus exact, copy-pasteable steps for every account-bound action.
+- `README.md` — added a recruiter-facing header (title, one-line description, Live Demo/GitHub/Architecture links — left honestly as "not yet deployed/published" rather than fabricated, plus a compact LLM/Safety/Scheduling/RL/Fallback summary table) and updated the Deployment and Project Structure sections.
+- Two more local commits (3 total now), each preceded by a dedicated secret scan of the new/changed files.
 
-## Files Deleted This Pass
+## Why GitHub Publishing and Deployment Are Genuinely Blocked, Not Skipped
 
-- 5 stdout-capture log files at repo root (`ablation_output.log`, `acceptance_output*.log`) — generated, no code referenced them.
-- `scratch_test.py` — confirmed to be a byte-for-byte functional duplicate of `scripts/verify_api.py`.
-- (From the prior Phase 1.5 pass, already done before this session: `frontend/frontend-temp/`, `frontend/frontend-temp.zip`.)
+Checked directly in this session:
+- `gh --version` → not installed.
+- `git config --global credential.helper` → empty (no stored credential for a non-interactive push).
+- No browser automation tool or MCP browser tool available to this session (confirmed in the prior pass and unchanged).
 
-## Files Moved This Pass
+A `git push` to a brand-new GitHub remote, or creating an account on Render/Cloudflare Pages, requires an interactive login (OAuth popup or credential entry) that a headless CLI session cannot complete. Attempting it would either hang indefinitely waiting for input, or fail outright — neither of which this report will pretend succeeded.
 
-- `verify_api.py`, `check_fixtures.py`, `diff_results.py`, `read_results.py` → `scripts/` (with a new `scripts/README.md` explaining each). Confirmed they still run correctly from the repo root after the move (no import-path issues, since they only use `open()` calls, not local module imports). `acceptance_test.py` and `test_negotiator.py` were **not** moved — confirmed by direct test that moving them would break their `from simple_ev_simulation import ...`-style imports (Python's `sys.path[0]` is the script's own directory, not the CWD).
+## Exact Remaining Actions (only you can perform these)
 
-## Remaining Blockers (all genuinely external — see final chat summary for full list)
-
-1. Confirm/rotate the Gemini key in Google AI Studio — outside this repository, not a code task.
-2. Authorize a live `/api/negotiate` call to move Gemini integration from UNVERIFIED to PASS.
-3. Decide on and provision actual hosting if deployment is wanted — no account was created, no money spent, nothing pushed.
-4. Push to a GitHub remote, if desired — no remote was created or pushed to in this pass.
+1. Create the GitHub repo (`ev-nexus`, public, no auto-generated files) and run the 3 `git` commands in `docs/DEPLOYMENT.md` §1 to push.
+2. Sign up for Render (no card needed) and deploy via Blueprint using the pushed repo — `docs/DEPLOYMENT.md` §2. Enter `GEMINI_API_KEY` directly into Render's dashboard if/when you want live Gemini tested (never paste it here).
+3. Sign up for Cloudflare Pages (no card needed) and deploy the frontend with `VITE_API_BASE` set to your Render URL — `docs/DEPLOYMENT.md` §3.
+4. Set the backend's `ALLOWED_ORIGINS` to your real Cloudflare Pages URL — `docs/DEPLOYMENT.md` §4.
+5. Run the production smoke test in `docs/DEPLOYMENT.md` §5 yourself (open the URLs in your own browser).
+6. Optionally, come back and ask for one controlled live-Gemini smoke test once the key is in place on Render — that single step is the only thing separating "Gemini integration: UNVERIFIED" from "PASS."
+7. Confirm/rotate the Gemini key in Google AI Studio if its exposure status is still a concern — unrelated to and independent of the steps above.
