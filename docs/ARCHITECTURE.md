@@ -92,7 +92,7 @@ State: `_SESSIONS: Dict[str, EVChargingSimulation]` (`app.py:63`), an in-process
 ## Simulation Core
 
 - `simple_ev_simulation.py` — canonical simulator: `EVAgent`, `ChargingPort`, `ChargingStation`, `Scheduler`, `EVChargingSimulation`. All other simulation-adjacent scripts import from this file rather than reimplementing it.
-- `visual_ev_simulation.py` — a terminal-dashboard wrapper around the same canonical simulation (`visual_ev_simulation.py:15` imports `EVChargingSimulation`), used for CLI demos before the React UI existed. Not a competing implementation.
+- *(A `visual_ev_simulation.py` terminal dashboard also wrapped this same simulation for CLI demos before the React UI existed. It was removed once the UI superseded it; it was never a competing implementation.)*
 - `ev_gym_env.py` — Gymnasium wrapper (`EVChargingEnv`) around the same simulator, used only for DQN training/inference. 42-dim observation space, 26-action discrete action space (`ev_gym_env.py:23-29`).
 
 ## DQN Path (Experimental, Isolated)
@@ -106,7 +106,9 @@ Full checkpoint provenance: `docs/DQN_PROVENANCE.md`.
 
 ## Experiment / Benchmark Pipeline
 
-`experiment_comparison.py` loads `llm_fixtures.json`, replays cached (not live) Gemini outputs across FIFO/PRIORITY/SJF/TELEMETRY_ONLY/LLM_NEGOTIATOR/DQN policies, 30 runs × 3 congestion scenarios, and writes `phase5_results.json`. `app.py`'s `/api/benchmarks` route serves this file (plus `phase4c5_results.json`) to the frontend's Benchmarks page, which renders it with an explicit "source: phase5_results.json" / "Fixture-based LLM replay" label — never presented as live data.
+**Current:** `benchmark_v2.py` drives `schedule_engine.py` and writes `benchmark_v2_results.json`, which `/api/benchmarks` serves to the Benchmarks page.
+
+**Superseded:** `experiment_comparison.py` loads `llm_fixtures.json` and replays cached (not live) Gemini outputs across the old FIFO/PRIORITY/SJF/TELEMETRY_ONLY/LLM_NEGOTIATOR/DQN policy set, writing `phase5_results.json`. That file is still served (and still in the repository) purely so the earlier, unsound comparison remains auditable — the Benchmarks page no longer renders it. The module itself is retained because `tests/test_core.py` uses its fixture-replay patching.
 
 ## Security Boundary
 

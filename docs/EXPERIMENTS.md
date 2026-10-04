@@ -193,13 +193,16 @@ Phase 5 (the current, active benchmark) compares six scheduling policies — FIF
 
 ## Which Results Files Are What
 
-| File | `experiment_config` says | Status |
-|---|---|---|
-| `phase5_results.json` | `num_runs: 30`, `methodology: "fixture_based_llm"`, `fixture_count: 20` | **Current, active benchmark.** Served by `/api/benchmarks`, rendered on the Benchmarks page. |
-| `phase5_sensitivity_results.json` | `methodology: "fixture_based_llm_live_only"`, `fixture_count: 15`, explicit `excluded_synthetic` list | A sensitivity check restricted to only the fixtures that were `gemini_live` *at the time it was generated* (predates the full 20-fixture backfill). Historical — not served by any API route. |
-| `phase4c5_results.json` | `num_runs: 30` | An earlier fixture-based run, predates the `"source"` field entirely. Historical — still served by `/api/benchmarks` for comparison, but the frontend's primary display is `phase5_results.json`. |
-| `phase4_results.json` | `num_runs: 30` | Earliest phase-4 run. Not served by any API route. Historical. |
-| `archive/dqn_comparison_results.json`, `archive/phase3_results.json`, `archive/experiment_results.json` | — | Retired — `archive/dqn_comparison_results.json` was directly inspected in this pass and confirmed to contain the documented `avg_satisfaction: 0.0` bug in its `FIFO` raw results. Not served by any API route, kept only for provenance. |
+| File | Status |
+|---|---|
+| `benchmark_v2_results.json` | **Current, active benchmark.** Produced by `benchmark_v2.py`, served by `/api/benchmarks`, rendered on the Benchmarks page. |
+| `phase5_results.json` | Superseded Phase 5 output. Still served and still in the repository so the earlier, unsound comparison stays auditable — but it is no longer rendered, and its figures are not restated anywhere. |
+| `archive/dqn_comparison_results.json`, `archive/phase3_results.json`, `archive/experiment_results.json` | Retired. `archive/dqn_comparison_results.json` was directly inspected and confirmed to contain the documented `avg_satisfaction: 0.0` bug in its `FIFO` raw results. Not served by any route; kept because the DQN provenance investigation cites them as evidence. |
+
+Three further Phase 5-era outputs (`phase4_results.json`, `phase4c5_results.json`,
+`phase5_sensitivity_results.json`) were **removed** during repository cleanup. Nothing
+read them, no document cited their contents as evidence, and together they were roughly
+0.6 MB of superseded output. They remain recoverable from git history.
 
 ## Reproducing the Benchmark
 

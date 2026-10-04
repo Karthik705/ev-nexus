@@ -1,5 +1,9 @@
 # Phase 1.5 — Pre-Implementation Cleanup Log
 
+> **Historical record — do not read as current state.** A dated log from 2026-09-28,
+> kept unedited. Some files referenced here have since been removed in a later cleanup
+> pass. Current state: `docs/CURRENT_PROJECT_STATUS.md`.
+
 Date: 2026-09-28. Scope: resolve confirmed P0/P1 hygiene items from `PROJECT_STATUS_AUDIT.md` only. No git repository was initialized, no commits made, no deployment performed, no live Gemini/API calls made, no secret values inspected or printed.
 
 ---

@@ -308,9 +308,10 @@ def step_simulation(body: SessionRequest = Body(default=SessionRequest())):
 # directory with no filtering or auth.
 # ---------------------------------------------------------------------------
 _BENCHMARK_ALLOWLIST = [
-    "phase4c5_results.json",
-    "phase5_results.json",
+    # Current benchmark, rendered by the Benchmarks page.
     "benchmark_v2_results.json",
+    # Superseded, retained so the earlier (unsound) comparison stays auditable.
+    "phase5_results.json",
 ]
 
 

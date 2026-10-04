@@ -299,7 +299,7 @@ These were found by auditing the old harness, are documented in
 
 ## Limitations
 
-- **Gemini live calls are not verified as part of this repository's automated testing.** All backend tests and API smoke tests use `force_fallback=True` or cached fixtures, deliberately, to avoid unpredictable API cost/availability during development and CI. The deterministic fallback path is fully tested; the live Gemini call path is exercised only manually (`test_negotiator.py`, `acceptance_test.py`). Do not assume Gemini is always available — the system is designed to degrade gracefully when it isn't.
+- **Gemini live calls are not verified as part of this repository's automated testing.** All backend tests and API smoke tests use `force_fallback=True` or cached fixtures, deliberately, to avoid unpredictable API cost/availability during development and CI. The deterministic fallback path is fully tested; the live Gemini call path has only ever been exercised by hand. Do not assume Gemini is always available — the system is designed to degrade gracefully when it isn't.
 - **The benchmark replays captured Gemini output rather than calling the API per car.** This is deliberate: a 30-seed × 3-congestion × 6-policy sweep would be thousands of live calls, and API latency/quota variance would contaminate a scheduling comparison. The replayed outputs are real captured responses (`llm_fixtures.json`), including their mistakes.
 - **`app.py` uses per-session, in-process state** (keyed by `session_id`), sufficient for a local demo but not production: state is lost on restart and not shared across replicas, and there is no session TTL/cleanup.
 - **Fixed bug (this pass):** the target charge level was previously a hardcoded 80 kWh (not 80%), so any vehicle with a battery smaller than 80 kWh would show an SOC reading above 100% while charging. Fixed to be 80% of that vehicle's own capacity in both the interactive `/api/negotiate` path and the simulator's random-EV generator. See `docs/TEST_REPORT.md`.
@@ -453,24 +453,20 @@ Production CORS is locked to the exact frontend origin (`ALLOWED_ORIGINS=https:/
 ├── llm_negotiator.py               # Gemini API wrapper with call counters and error classification
 ├── constraint_validator.py         # Lie detector + feasibility/budget checker
 ├── negotiation_types.py            # Dataclasses: LLMParsedRequest, ValidatedChargingRequest
-├── experiment_comparison.py        # Phase 5 ablation runner (fixture-based)
-├── sensitivity_experiment.py       # Phase 5 re-run restricted to gemini_live-only fixtures
+├── experiment_comparison.py        # Superseded Phase 5 runner; still provides fixture replay used by tests
 ├── generate_fixtures.py            # Fixture generator with exponential-backoff retry
 ├── llm_fixtures.json               # 20 fixtures, all "source": "gemini_live"
-├── phase5_results.json             # Full ablation (20 fixtures, 30 runs) — historical
-├── phase5_sensitivity_results.json # Ablation restricted to 15 gemini_live fixtures — historical
-├── phase4c5_results.json           # Earlier fixture-based run — historical
+├── phase5_results.json             # Superseded Phase 5 output — kept so the old comparison stays auditable
 ├── dqn_agent.py                    # DQN architecture + training loop (produces ev_dqn_model_v5.pth)
 ├── ev_gym_env.py                   # Gym environment wrapper (42-dim state, 26-action space)
 ├── ev_dqn_model_v5.pth             # Canonical DQN checkpoint — see docs/DQN_PROVENANCE.md
 ├── ev_dqn_model.pth, _v2–_v4.pth   # Historical/orphaned checkpoints — see docs/DQN_PROVENANCE.md
-├── visual_ev_simulation.py         # Legacy terminal dashboard (CLI demo, superseded by the React UI)
 ├── controlled_scenarios.py         # Standalone manual DQN scenario demo (not part of automated tests)
-├── acceptance_test.py, test_negotiator.py  # Manual acceptance/demo scripts — some paths make live Gemini calls; not part of pytest (see docs/TEST_REPORT.md)
 ├── scripts/                        # Ad hoc diagnostic scripts (not automated) — see scripts/README.md
 ├── tests/
 │   ├── test_core.py                # validator + legacy simulation (10 tests)
-│   └── test_schedule_engine.py     # v2 engine, fairness invariants, regression guards (22 tests)
+│   ├── test_schedule_engine.py     # v2 engine, fairness invariants, regression guards (22 tests)
+│   └── test_published_claims.py    # parses README/EXPERIMENTS and checks every figure (8 tests)
 ├── frontend/e2e/                   # Playwright browser tests (9 tests)
 ├── screenshots/                    # UI captures used in this README
 ├── archive/                        # Retired result files (avg_satisfaction=0.0 bug) — kept for provenance, not used
