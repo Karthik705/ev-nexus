@@ -9,6 +9,13 @@ import { defineConfig, devices } from '@playwright/test';
  */
 const API_BASE = process.env.VITE_API_BASE ?? 'http://127.0.0.1:8000/api';
 
+/**
+ * Set E2E_BASE_URL to run the suite against an already-deployed site instead of
+ * a local preview server, e.g.
+ *   $env:E2E_BASE_URL="https://ev-nexus.pages.dev"; npx playwright test
+ */
+const DEPLOYED = process.env.E2E_BASE_URL;
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 90_000,
@@ -18,12 +25,12 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     // vite preview binds to ::1 only, so address it as localhost, not 127.0.0.1.
-    baseURL: 'http://localhost:4173',
+    baseURL: DEPLOYED ?? 'http://localhost:4173',
     ...devices['Desktop Chrome'],
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
-  webServer: {
+  webServer: DEPLOYED ? undefined : {
     // Serves the production bundle — the same artefact that gets deployed,
     // not a dev server. Build it first, with the API base baked in:
     //   $env:VITE_API_BASE="http://127.0.0.1:8000/api"; npm run build
