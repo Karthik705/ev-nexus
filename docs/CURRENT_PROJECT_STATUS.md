@@ -1,6 +1,7 @@
-# EV NEXUS — Current Project Status (Checkpoint)
+# EV NEXUS — Current Project Status
 
-Current as of the "take over deployment" pass, in which GitHub CLI, Render CLI, and Cloudflare Wrangler were installed and authenticated (via browser one-time device-code flows — no secrets typed into chat), and both services were deployed directly from this session. Prior history: `PROJECT_STATUS_AUDIT.md`, `docs/PHASE_1_5_CLEANUP.md`, `docs/DQN_PROVENANCE.md`, and this file's prior versions (finalization pass, deployment-prep pass).
+Current as of the v2 scheduling-engine pass. Earlier history:
+`PROJECT_STATUS_AUDIT.md`, `docs/PHASE_1_5_CLEANUP.md`, `docs/DQN_PROVENANCE.md`.
 
 ## Live URLs
 
@@ -9,49 +10,97 @@ Current as of the "take over deployment" pass, in which GitHub CLI, Render CLI, 
 | GitHub | [github.com/Karthik705/ev-nexus](https://github.com/Karthik705/ev-nexus) — public |
 | Frontend | [ev-nexus.pages.dev](https://ev-nexus.pages.dev) (Cloudflare Pages, free tier) |
 | Backend | [ev-nexus-backend.onrender.com](https://ev-nexus-backend.onrender.com) (Render, free tier) |
-| Health | [ev-nexus-backend.onrender.com/api/health](https://ev-nexus-backend.onrender.com/api/health) → `{"status":"ok"}` |
+| Health | [/api/health](https://ev-nexus-backend.onrender.com/api/health) |
 
-All real, all verified live in this pass. Total hosting cost: **₹0** — no credit card entered anywhere, no paid plan selected.
+Total hosting cost: **₹0**. No card, no paid plan.
 
-## Final Status Table
+## What this project now claims, and the evidence
 
-Values are strictly one of: **PASS**, **PARTIAL**, **UNVERIFIED**, **BLOCKED**.
+**Claim.** A driver's deadline exists only in natural language. Recovering it lets a
+scheduler hit deadlines that telemetry-only policies structurally cannot.
+
+**Evidence.** 30 paired seeds per congestion level, identical arrival stream to every
+policy, identical physics/pricing/budget rules. At HIGH congestion (6.5 cars/hr):
+
+| Policy | Deadlines met | Avg wait | Served | Port time |
+|---|---|---|---|---|
+| FIFO | 29.6% | 164 min | 96.8% | 82.4% |
+| Lowest-SOC-first | 39.4% | 148 min | 97.3% | 83.7% |
+| Shortest-Job-First | 47.9% | 83 min | 97.8% | 82.5% |
+| **Agent** | **61.6%** | **53 min** | **98.5%** | **76.0%** |
+
++32.0 pp vs FIFO (30/30 seeds), +13.7 pp vs SJF (29/30), +22.2 pp vs Lowest-SOC
+(30/30). All CIs exclude zero.
+
+**The control.** The identical scheduler with the language-derived deadline withheld
+scores 51.2% — it falls back toward the conventional policies. The gain is the
+information, not the tuning.
+
+## Status table
 
 | Area | Status | Evidence |
 |---|---|---|
-| Backend | PASS (deployed) | Live at the URL above; `/api/health`, `/api/negotiate`, `/api/station`, `/api/step`, `/api/reset`, `/api/benchmarks` all smoke-tested directly against production this pass. |
-| Frontend | PASS (deployed) | Live at the URL above, `HTTP 200`, correct title, production backend URL confirmed baked into the shipped JS bundle. |
-| API | PASS | All production smoke tests passed — see `docs/DEPLOYMENT.md`. |
-| Gemini integration | PARTIAL — key verified valid, live extraction not yet confirmed successful | `GEMINI_API_KEY` is now set on Render (added by the user directly in the dashboard — never read or transmitted by this session). One controlled live smoke test was performed against the production backend: the request reached `generativelanguage.googleapis.com` and authenticated successfully (no `AUTH_ERROR` — the key itself is confirmed valid and correctly wired), but Gemini returned `503 Service Unavailable` ("model currently experiencing high demand") both on the initial attempt and one retry. The system correctly detected the failure and fell back to deterministic telemetry both times (`fallback_used:true`, nonzero `llm_latency_sec` confirming a real network attempt was made, not skipped). Per instructions, no further retries were made. **Live structured-intent extraction itself has not yet been confirmed to succeed** — this is a transient upstream Google availability issue, not a configuration or code problem, but it means "PASS" cannot honestly be claimed yet. Retry later to confirm. |
-| Deterministic fallback | PASS | Verified in production: `force_fallback:true` request against the live backend returned the correct telemetry-tier response. |
-| Safety validation | PASS | Lie-detector logic unchanged from the already-verified local build; same code now running in production. |
-| Scheduling | PASS | Verified in production: resource-aware port assignment and the target-SOC fix (`target_soc: 80.0` for a non-80kWh battery) both confirmed correct live. |
-| DQN | PASS (as documented) | No change this pass; still isolated from the interactive app, framed consistently as an experimental baseline. See `docs/DQN_PROVENANCE.md`. |
-| Benchmarks | PASS | `/api/benchmarks` on the live backend correctly serves both allowlisted historical result files. |
-| Browser E2E | UNVERIFIED | Still no browser automation tool available in this session. The production frontend was verified via `curl` (HTTP 200, correct HTML/title) and by confirming the JS bundle targets the correct backend — not the same as real interactive browser testing, which remains genuinely untested. |
-| Tests | PASS | `pytest tests/` → 10/10, re-confirmed at the start of this pass before any deployment action. |
-| Security | PASS, with one noted caution | Full secret scans clean throughout. `.env`/`GEMINI_API_KEY` never touched. **One caution:** while inspecting the Render CLI's local config during troubleshooting, a `cat` of its config file inadvertently displayed the Render account's own CLI API token in this session's terminal output. This is not your Gemini key and was not exposed publicly, but rotating that specific Render API key via Render's dashboard (Account Settings → API Keys) is a reasonable precaution — noted in `docs/DEPLOYMENT.md`. |
-| GitHub | PASS | Public, pushed, verified via the public GitHub API (`private: false`, correct `pushed_at`). |
-| Deployment | PASS | Both services live, CORS locked to the exact frontend origin (no wildcard), health check verified correct after fixing a Git-Bash path-mangling issue encountered mid-deployment (documented in `docs/DEPLOYMENT.md` so it doesn't recur). |
-| Documentation | PASS | README, `docs/ARCHITECTURE.md`, `docs/EXPERIMENTS.md`, `docs/TEST_REPORT.md`, `docs/DEPLOYMENT.md`, `docs/RESUME_SUMMARY.md`, `docs/DQN_PROVENANCE.md` all present, cross-referenced, and updated with real URLs this pass. |
+| Scheduling engine (v2) | PASS | 22 tests incl. fairness invariants; production verified byte-identical to local for the same seed |
+| Benchmark | PASS | `benchmark_v2.py`, 30 paired seeds × 3 levels, bootstrap CIs, reproducible offline |
+| Agent algorithm | PASS | Beats every conventional baseline at every congestion level |
+| Ablations | PASS | no-deadline −10.3 pp (HIGH); no-validator ≈0 and reported as such |
+| Validator | PASS (correctly neutral) | No effect at 0% gaming; +6.3 pp at 50%. Reported as anti-gaming, not throughput |
+| Ground-truth hygiene | PASS | Causal test perturbs ground truth by +997 min and asserts decisions unchanged |
+| Backend | PASS | All routes live; `/api/compare` and `/api/scenarios` verified in production |
+| Frontend | PASS | Scheduler + Benchmarks pages live; 0 TypeScript errors |
+| Browser E2E | PASS | 9 Playwright tests, passing **against the live deployed site** |
+| Python tests | PASS | 40 tests (10 legacy + 22 engine + 8 doc-drift guards) |
+| Documentation accuracy | PASS | 8 tests parse README/EXPERIMENTS and check every figure against the benchmark JSON |
+| Security | PASS | No key material in repo or served bundles; E2E asserts no `AIza…` reaches the browser |
+| Gemini live call | UNVERIFIED | Key authenticates, but the one smoke test hit a transient Google 503. Not retried; deterministic fallback carries production |
+| Legacy v1 engine | RETAINED | Still backs `/api/negotiate` and the Overview/Charging demo pages |
+| DQN | EXPERIMENTAL | Unchanged; isolated from production. Not part of the v2 comparison |
 
-## What Was Automated in This Pass (no manual steps needed from you for any of it)
+## What changed in this pass
 
-- Installed `gh` (GitHub CLI) and the official Render CLI via `winget` (free, official sources).
-- Authenticated GitHub, Cloudflare (`wrangler`), and Render via each tool's own browser-based device-code login — you only needed to click "Authorize" in windows that opened on your own machine; nothing was typed into this chat.
-- Discovered and pushed 2 new local commits to the already-existing `github.com/Karthik705/ev-nexus` repo (it turned out you'd already created and pushed the repo from the previous session's instructions — this pass found that, verified it publicly, and pushed the commits made since).
-- Created and deployed the Cloudflare Pages project (`ev-nexus`), including recovering cleanly after `wrangler`'s default command auto-delegated to an unwanted "Pages via Workers" flow and modified frontend config files — those were reverted before proceeding with the classic Pages flow instead.
-- Created and deployed the Render web service (`ev-nexus-backend`) via direct CLI flags (build/start commands, health check, free plan, `ALLOWED_ORIGINS`).
-- Diagnosed and fixed a Git-Bash-specific path-mangling bug that broke the health check, including discovering that a plain redeploy didn't clear Render's cached internal health-check state and a service **restart** was required.
-- Ran a full production smoke test against both live URLs (health, CORS preflight, reset, negotiate/fallback, station, step, benchmarks) — all passed.
-- Rebuilt and redeployed the frontend against the real production backend URL, confirmed via direct inspection of the shipped bundle.
-- Updated README and `docs/DEPLOYMENT.md` with real, verified URLs — no fabricated links.
+**Found: the old benchmark was unfair to the agent and measured the wrong thing.**
 
-## What Still Requires Your Action
+1. Budget enforced only for agent policies — heuristics ignored it, so the agent was
+   the only policy that ever rejected a customer.
+2. Arrival streams diverged between policies despite a shared seed (agent policies
+   consumed extra random draws), so the comparison was not paired.
+3. Deadline adherence was never measured; ground-truth deadlines were randomised
+   independently of the message text, making them unmeasurable anyway.
 
-1. **Add `GEMINI_API_KEY` to Render's dashboard** (exact URL and steps in `docs/DEPLOYMENT.md`) if you want live Gemini — deliberately not done automatically.
-2. **Authorize one controlled live-Gemini smoke test** once that key is set.
-3. Optional: rotate the Render account API key as a precaution (see Security row above and `docs/DEPLOYMENT.md`).
-4. Optional: confirm/rotate the original Gemini key in Google AI Studio if its historical exposure status is still a concern — unrelated to and independent of everything above.
+**Built:** `scenario_library.py` (hand-authored ground truth + deterministic arrival
+streams), `schedule_engine.py` (one engine, all policies, identical physics — backs
+both the benchmark and the live site), `benchmark_v2.py` (paired bootstrap).
 
-No paid services were used, no billing was activated, and `.env`/`GEMINI_API_KEY` were never read, printed, or transmitted at any point in this pass.
+**Fixed, in my own agent, found by calibration not by tests:**
+- The power term used `min(port,rate)/port`, scoring a 50 kW car on the 7 kW port as
+  perfectly efficient. The agent parked fast cars on slow ports and was *worse than
+  every baseline* at low load.
+- No short-job preference, so the no-validator ablation beat the full agent.
+
+**Fixed, found by tests:** a port double-booking off-by-one (completion recorded at
+`now+step`, port reassigned at `now`).
+
+**Fixed, found by the doc-drift audit:** README and EXPERIMENTS.md were quoting the
+LOW-congestion row from the benchmark run *before* the double-booking fix. Now
+guarded by `tests/test_published_claims.py`.
+
+## Known limitations
+
+- The simulation is a simulation: plausible distributions, not real station data. The
+  policy *comparison* is sound (identical world for every policy); absolute
+  percentages are not a claim about a real forecourt.
+- Fixed set of 20 driver messages. A population that never states deadlines sees no
+  benefit — visible in the LOW-congestion and no-deadline rows.
+- Deadline labels involve judgement ("immediately" → 10 min); reasoning is recorded
+  per label in `scenario_library.py`.
+- Greedy matching, not optimal assignment.
+- Render free tier sleeps after 15 min idle; first request can take 30–60 s.
+- `docs/RESUME_SUMMARY.md` describes the project at a high level; the v2 results
+  supersede any phase-5 figures quoted elsewhere in older docs.
+
+## Remaining actions for the owner
+
+1. Optional: retry the live Gemini smoke test (the earlier failure was a transient
+   Google 503, not a configuration problem).
+2. Optional: rotate the Render CLI API key — it was briefly displayed in a terminal
+   during deployment setup (not your Gemini key, not public).

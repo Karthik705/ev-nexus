@@ -242,11 +242,11 @@ captured Gemini outputs in `llm_fixtures.json`). Full methodology:
 
 | | LOW (3/hr) | MEDIUM (5/hr) | HIGH (6.5/hr) |
 |---|---|---|---|
-| FIFO | 74.3% | 51.4% | 29.6% |
-| Lowest-SOC-first | 74.8% | 56.9% | 39.4% |
-| Shortest-Job-First | 74.5% | 59.7% | 47.9% |
-| **EV NEXUS agent** | **76.5%** | **65.7%** | **61.6%** |
-| *ablation: no deadlines* | *75.7%* | *61.4%* | *51.2%* |
+| FIFO | 74.5% | 51.4% | 29.6% |
+| Lowest-SOC-first | 75.0% | 56.9% | 39.4% |
+| Shortest-Job-First | 74.7% | 59.7% | 47.9% |
+| **EV NEXUS agent** | **76.7%** | **65.7%** | **61.6%** |
+| *ablation: no deadlines* | *76.0%* | *61.4%* | *51.2%* |
 
 Paired improvement over the **best** conventional baseline at each level:
 **+1.8 pp** (LOW) → **+5.9 pp** (MEDIUM) → **+13.7 pp** (HIGH). Every interval

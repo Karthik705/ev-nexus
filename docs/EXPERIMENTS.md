@@ -78,12 +78,12 @@ Deadline adherence (on-time rate):
 
 | Policy | LOW (3/hr) | MEDIUM (5/hr) | HIGH (6.5/hr) |
 |---|---|---|---|
-| FIFO | 74.3% | 51.4% | 29.6% |
-| Lowest-SOC-first | 74.8% | 56.9% | 39.4% |
-| Shortest-Job-First | 74.5% | 59.7% | 47.9% |
-| **Agent** | **76.5%** | **65.7%** | **61.6%** |
-| Agent, no validator | 76.4% | 65.6% | 61.6% |
-| Agent, **no deadlines** | 75.7% | 61.4% | 51.2% |
+| FIFO | 74.5% | 51.4% | 29.6% |
+| Lowest-SOC-first | 75.0% | 56.9% | 39.4% |
+| Shortest-Job-First | 74.7% | 59.7% | 47.9% |
+| **Agent** | **76.7%** | **65.7%** | **61.6%** |
+| Agent, no validator | 76.6% | 65.6% | 61.6% |
+| Agent, **no deadlines** | 76.0% | 61.4% | 51.2% |
 
 Paired deltas vs each baseline at HIGH congestion:
 
