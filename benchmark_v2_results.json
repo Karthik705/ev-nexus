@@ -1,0 +1,3314 @@
+{
+  "experiment_config": {
+    "version": "v2",
+    "num_seeds": 30,
+    "horizon_hours": 24.0,
+    "station_kw": [
+      7.0,
+      50.0,
+      50.0,
+      150.0,
+      150.0
+    ],
+    "congestion_levels": {
+      "LOW": 3.0,
+      "MEDIUM": 5.0,
+      "HIGH": 6.5
+    },
+    "policies": {
+      "fifo": {
+        "label": "FIFO",
+        "family": "conventional"
+      },
+      "sjf": {
+        "label": "Shortest Job First",
+        "family": "conventional"
+      },
+      "soc": {
+        "label": "Lowest SOC First",
+        "family": "conventional"
+      },
+      "agent": {
+        "label": "EV NEXUS Agent",
+        "family": "agent"
+      },
+      "agent_no_validation": {
+        "label": "Agent (no validator)",
+        "family": "ablation"
+      },
+      "agent_no_deadline": {
+        "label": "Agent (no deadlines)",
+        "family": "ablation"
+      }
+    },
+    "statistics": "paired percentile bootstrap, 10000 resamples, 95% CI",
+    "pairing": "One arrival stream is generated per seed and replayed verbatim to every policy (common random numbers), so per-seed deltas are a true paired comparison.",
+    "parity_notes": [
+      "Identical charging physics, pricing and budget enforcement for all policies.",
+      "Pricing has no urgency multiplier, so the agent cannot inflate revenue by knowing urgency.",
+      "All conventional baselines use the same best-fit port heuristic; only queue ordering differs.",
+      "Ground-truth deadlines/urgency are used only for grading and are never read by any policy."
+    ]
+  },
+  "agent_input_quality": {
+    "scenarios_total": 20,
+    "scenarios_with_true_deadline": 12,
+    "deadlines_recovered": 8,
+    "deadlines_missed": 4,
+    "deadlines_missed_keys": [
+      "E_GENUINE_EMERGENCY",
+      "J_NIGHT_SHIFT",
+      "L_BABY_IN_CAR",
+      "T_WIFE_LABOR"
+    ],
+    "deadline_recall": 0.6667,
+    "deadline_exact_matches": 8,
+    "deadline_within_tolerance": 8,
+    "urgency_agreement": 1.0,
+    "urgency_judged_scenarios": 19,
+    "note": "Ground truth is hand-authored from the message text and used only for grading. No policy reads it. The adversarial scenario F_CONTRADICTORY_EMERGENCY is excluded from urgency agreement because disagreeing with its stated urgency is correct."
+  },
+  "scenarios": {
+    "LOW": {
+      "arrivals_per_hour": 3.0,
+      "mean_arrivals_per_day": 71.8,
+      "policies": {
+        "fifo": {
+          "label": "FIFO",
+          "family": "conventional",
+          "metrics": {
+            "arrived": {
+              "mean": 71.7667,
+              "lo": 68.3333,
+              "hi": 75.1667
+            },
+            "served": {
+              "mean": 70.6667,
+              "lo": 67.3,
+              "hi": 74.0
+            },
+            "served_rate": {
+              "mean": 0.985,
+              "lo": 0.9805,
+              "hi": 0.9894
+            },
+            "deadline_evs": {
+              "mean": 42.9667,
+              "lo": 40.4333,
+              "hi": 45.4333
+            },
+            "on_time_rate": {
+              "mean": 0.7452,
+              "lo": 0.7047,
+              "hi": 0.7793
+            },
+            "deadline_miss_rate": {
+              "mean": 0.2548,
+              "lo": 0.2207,
+              "hi": 0.2954
+            },
+            "mean_lateness_min": {
+              "mean": 80.5797,
+              "lo": 68.2527,
+              "hi": 95.5643
+            },
+            "critical_on_time_rate": {
+              "mean": 0.679,
+              "lo": 0.6385,
+              "hi": 0.7204
+            },
+            "avg_wait_min": {
+              "mean": 8.0447,
+              "lo": 2.4427,
+              "hi": 18.0447
+            },
+            "p95_wait_min": {
+              "mean": 31.4627,
+              "lo": 9.479,
+              "hi": 67.6823
+            },
+            "max_wait_min": {
+              "mean": 96.2937,
+              "lo": 55.1413,
+              "hi": 144.4433
+            },
+            "energy_kwh": {
+              "mean": 1476.4213,
+              "lo": 1399.1083,
+              "hi": 1550.5787
+            },
+            "port_utilisation": {
+              "mean": 0.3422,
+              "lo": 0.3117,
+              "hi": 0.375
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 82.6,
+              "lo": 47.6667,
+              "hi": 125.8667
+            }
+          }
+        },
+        "sjf": {
+          "label": "Shortest Job First",
+          "family": "conventional",
+          "metrics": {
+            "arrived": {
+              "mean": 71.7667,
+              "lo": 68.3333,
+              "hi": 75.1667
+            },
+            "served": {
+              "mean": 70.6667,
+              "lo": 67.3,
+              "hi": 74.0
+            },
+            "served_rate": {
+              "mean": 0.985,
+              "lo": 0.9805,
+              "hi": 0.9894
+            },
+            "deadline_evs": {
+              "mean": 42.9667,
+              "lo": 40.4333,
+              "hi": 45.4333
+            },
+            "on_time_rate": {
+              "mean": 0.7472,
+              "lo": 0.7123,
+              "hi": 0.7784
+            },
+            "deadline_miss_rate": {
+              "mean": 0.2528,
+              "lo": 0.2216,
+              "hi": 0.2877
+            },
+            "mean_lateness_min": {
+              "mean": 78.57,
+              "lo": 66.6007,
+              "hi": 92.3767
+            },
+            "critical_on_time_rate": {
+              "mean": 0.6788,
+              "lo": 0.638,
+              "hi": 0.7193
+            },
+            "avg_wait_min": {
+              "mean": 6.0433,
+              "lo": 2.3437,
+              "hi": 12.3213
+            },
+            "p95_wait_min": {
+              "mean": 33.602,
+              "lo": 8.941,
+              "hi": 75.7023
+            },
+            "max_wait_min": {
+              "mean": 112.7607,
+              "lo": 61.28,
+              "hi": 179.807
+            },
+            "energy_kwh": {
+              "mean": 1476.4213,
+              "lo": 1399.1083,
+              "hi": 1550.5787
+            },
+            "port_utilisation": {
+              "mean": 0.346,
+              "lo": 0.3142,
+              "hi": 0.3796
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 84.9333,
+              "lo": 49.7667,
+              "hi": 128.6333
+            }
+          }
+        },
+        "soc": {
+          "label": "Lowest SOC First",
+          "family": "conventional",
+          "metrics": {
+            "arrived": {
+              "mean": 71.7667,
+              "lo": 68.3333,
+              "hi": 75.1667
+            },
+            "served": {
+              "mean": 70.6667,
+              "lo": 67.3,
+              "hi": 74.0
+            },
+            "served_rate": {
+              "mean": 0.985,
+              "lo": 0.9805,
+              "hi": 0.9894
+            },
+            "deadline_evs": {
+              "mean": 42.9667,
+              "lo": 40.4333,
+              "hi": 45.4333
+            },
+            "on_time_rate": {
+              "mean": 0.7496,
+              "lo": 0.7134,
+              "hi": 0.7815
+            },
+            "deadline_miss_rate": {
+              "mean": 0.2504,
+              "lo": 0.2185,
+              "hi": 0.2866
+            },
+            "mean_lateness_min": {
+              "mean": 80.29,
+              "lo": 67.6673,
+              "hi": 95.0407
+            },
+            "critical_on_time_rate": {
+              "mean": 0.6862,
+              "lo": 0.6462,
+              "hi": 0.7273
+            },
+            "avg_wait_min": {
+              "mean": 6.6773,
+              "lo": 2.2637,
+              "hi": 14.367
+            },
+            "p95_wait_min": {
+              "mean": 35.4617,
+              "lo": 8.87,
+              "hi": 79.993
+            },
+            "max_wait_min": {
+              "mean": 112.7887,
+              "lo": 60.1397,
+              "hi": 182.166
+            },
+            "energy_kwh": {
+              "mean": 1476.4213,
+              "lo": 1399.1083,
+              "hi": 1550.5787
+            },
+            "port_utilisation": {
+              "mean": 0.3441,
+              "lo": 0.3127,
+              "hi": 0.3782
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 87.1667,
+              "lo": 52.5333,
+              "hi": 130.3333
+            }
+          }
+        },
+        "agent": {
+          "label": "EV NEXUS Agent",
+          "family": "agent",
+          "metrics": {
+            "arrived": {
+              "mean": 71.7667,
+              "lo": 68.3333,
+              "hi": 75.1667
+            },
+            "served": {
+              "mean": 70.6333,
+              "lo": 67.2333,
+              "hi": 73.9667
+            },
+            "served_rate": {
+              "mean": 0.9845,
+              "lo": 0.9798,
+              "hi": 0.9891
+            },
+            "deadline_evs": {
+              "mean": 42.9667,
+              "lo": 40.4333,
+              "hi": 45.4333
+            },
+            "on_time_rate": {
+              "mean": 0.7673,
+              "lo": 0.738,
+              "hi": 0.7952
+            },
+            "deadline_miss_rate": {
+              "mean": 0.2327,
+              "lo": 0.2048,
+              "hi": 0.262
+            },
+            "mean_lateness_min": {
+              "mean": 75.6247,
+              "lo": 62.9533,
+              "hi": 90.0367
+            },
+            "critical_on_time_rate": {
+              "mean": 0.6942,
+              "lo": 0.6528,
+              "hi": 0.736
+            },
+            "avg_wait_min": {
+              "mean": 4.4863,
+              "lo": 1.9137,
+              "hi": 8.713
+            },
+            "p95_wait_min": {
+              "mean": 21.1463,
+              "lo": 7.672,
+              "hi": 40.466
+            },
+            "max_wait_min": {
+              "mean": 91.5063,
+              "lo": 43.8973,
+              "hi": 155.5637
+            },
+            "energy_kwh": {
+              "mean": 1475.355,
+              "lo": 1398.234,
+              "hi": 1549.74
+            },
+            "port_utilisation": {
+              "mean": 0.3303,
+              "lo": 0.2995,
+              "hi": 0.3623
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 96.6667,
+              "lo": 54.2333,
+              "hi": 151.0
+            }
+          }
+        },
+        "agent_no_validation": {
+          "label": "Agent (no validator)",
+          "family": "ablation",
+          "metrics": {
+            "arrived": {
+              "mean": 71.7667,
+              "lo": 68.3333,
+              "hi": 75.1667
+            },
+            "served": {
+              "mean": 70.6667,
+              "lo": 67.3,
+              "hi": 74.0
+            },
+            "served_rate": {
+              "mean": 0.985,
+              "lo": 0.9805,
+              "hi": 0.9894
+            },
+            "deadline_evs": {
+              "mean": 42.9667,
+              "lo": 40.4333,
+              "hi": 45.4333
+            },
+            "on_time_rate": {
+              "mean": 0.7664,
+              "lo": 0.7361,
+              "hi": 0.7949
+            },
+            "deadline_miss_rate": {
+              "mean": 0.2336,
+              "lo": 0.2051,
+              "hi": 0.2639
+            },
+            "mean_lateness_min": {
+              "mean": 75.9,
+              "lo": 63.0983,
+              "hi": 90.561
+            },
+            "critical_on_time_rate": {
+              "mean": 0.6942,
+              "lo": 0.6528,
+              "hi": 0.736
+            },
+            "avg_wait_min": {
+              "mean": 5.305,
+              "lo": 1.9137,
+              "hi": 11.169
+            },
+            "p95_wait_min": {
+              "mean": 23.5067,
+              "lo": 7.698,
+              "hi": 47.61
+            },
+            "max_wait_min": {
+              "mean": 95.0463,
+              "lo": 43.8973,
+              "hi": 165.796
+            },
+            "energy_kwh": {
+              "mean": 1476.4213,
+              "lo": 1399.1083,
+              "hi": 1550.5787
+            },
+            "port_utilisation": {
+              "mean": 0.3318,
+              "lo": 0.3003,
+              "hi": 0.365
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 95.5667,
+              "lo": 53.0,
+              "hi": 150.1
+            }
+          }
+        },
+        "agent_no_deadline": {
+          "label": "Agent (no deadlines)",
+          "family": "ablation",
+          "metrics": {
+            "arrived": {
+              "mean": 71.7667,
+              "lo": 68.3333,
+              "hi": 75.1667
+            },
+            "served": {
+              "mean": 70.6333,
+              "lo": 67.2333,
+              "hi": 73.9667
+            },
+            "served_rate": {
+              "mean": 0.9845,
+              "lo": 0.9798,
+              "hi": 0.9891
+            },
+            "deadline_evs": {
+              "mean": 42.9667,
+              "lo": 40.4333,
+              "hi": 45.4333
+            },
+            "on_time_rate": {
+              "mean": 0.7603,
+              "lo": 0.7279,
+              "hi": 0.7904
+            },
+            "deadline_miss_rate": {
+              "mean": 0.2397,
+              "lo": 0.2096,
+              "hi": 0.2721
+            },
+            "mean_lateness_min": {
+              "mean": 73.9103,
+              "lo": 61.5613,
+              "hi": 88.0133
+            },
+            "critical_on_time_rate": {
+              "mean": 0.6926,
+              "lo": 0.6518,
+              "hi": 0.7341
+            },
+            "avg_wait_min": {
+              "mean": 4.6197,
+              "lo": 2.0633,
+              "hi": 8.791
+            },
+            "p95_wait_min": {
+              "mean": 20.251,
+              "lo": 7.4523,
+              "hi": 39.617
+            },
+            "max_wait_min": {
+              "mean": 100.369,
+              "lo": 51.055,
+              "hi": 164.4087
+            },
+            "energy_kwh": {
+              "mean": 1475.355,
+              "lo": 1398.234,
+              "hi": 1549.74
+            },
+            "port_utilisation": {
+              "mean": 0.3314,
+              "lo": 0.3015,
+              "hi": 0.3628
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 95.5667,
+              "lo": 53.0,
+              "hi": 150.1
+            }
+          }
+        }
+      },
+      "paired_vs_agent": {
+        "fifo": {
+          "on_time_rate": {
+            "agent_mean": 0.7673,
+            "baseline_mean": 0.7452,
+            "paired_delta": {
+              "mean": 0.0221,
+              "lo": 0.0094,
+              "hi": 0.0395
+            },
+            "relative_pct": 2.97,
+            "seeds_agent_better": 16,
+            "seeds_tied": 13,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.6942,
+            "baseline_mean": 0.679,
+            "paired_delta": {
+              "mean": 0.0153,
+              "lo": 0.0024,
+              "hi": 0.0278
+            },
+            "relative_pct": 2.25,
+            "seeds_agent_better": 11,
+            "seeds_tied": 18,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9845,
+            "baseline_mean": 0.985,
+            "paired_delta": {
+              "mean": -0.0005,
+              "lo": -0.0014,
+              "hi": 0.0
+            },
+            "relative_pct": -0.05,
+            "seeds_agent_better": 0,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "avg_wait_min": {
+            "agent_mean": 4.4863,
+            "baseline_mean": 8.0447,
+            "paired_delta": {
+              "mean": -3.5583,
+              "lo": -9.4827,
+              "hi": -0.3323
+            },
+            "relative_pct": -44.23,
+            "seeds_agent_better": 16,
+            "seeds_tied": 10,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 21.1463,
+            "baseline_mean": 31.4627,
+            "paired_delta": {
+              "mean": -10.3163,
+              "lo": -27.6877,
+              "hi": -0.4587
+            },
+            "relative_pct": -32.79,
+            "seeds_agent_better": 12,
+            "seeds_tied": 14,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "energy_kwh": {
+            "agent_mean": 1475.355,
+            "baseline_mean": 1476.4213,
+            "paired_delta": {
+              "mean": -1.0663,
+              "lo": -3.199,
+              "hi": 0.0
+            },
+            "relative_pct": -0.07,
+            "seeds_agent_better": 0,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "port_utilisation": {
+            "agent_mean": 0.3303,
+            "baseline_mean": 0.3422,
+            "paired_delta": {
+              "mean": -0.0119,
+              "lo": -0.0208,
+              "hi": -0.0027
+            },
+            "relative_pct": -3.48,
+            "seeds_agent_better": 4,
+            "seeds_tied": 8,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": false
+          }
+        },
+        "sjf": {
+          "on_time_rate": {
+            "agent_mean": 0.7673,
+            "baseline_mean": 0.7472,
+            "paired_delta": {
+              "mean": 0.0201,
+              "lo": 0.0089,
+              "hi": 0.0318
+            },
+            "relative_pct": 2.69,
+            "seeds_agent_better": 16,
+            "seeds_tied": 13,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.6942,
+            "baseline_mean": 0.6788,
+            "paired_delta": {
+              "mean": 0.0155,
+              "lo": -0.0013,
+              "hi": 0.0305
+            },
+            "relative_pct": 2.28,
+            "seeds_agent_better": 12,
+            "seeds_tied": 16,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9845,
+            "baseline_mean": 0.985,
+            "paired_delta": {
+              "mean": -0.0005,
+              "lo": -0.0014,
+              "hi": 0.0
+            },
+            "relative_pct": -0.05,
+            "seeds_agent_better": 0,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "avg_wait_min": {
+            "agent_mean": 4.4863,
+            "baseline_mean": 6.0433,
+            "paired_delta": {
+              "mean": -1.557,
+              "lo": -3.8547,
+              "hi": -0.1543
+            },
+            "relative_pct": -25.76,
+            "seeds_agent_better": 15,
+            "seeds_tied": 8,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 21.1463,
+            "baseline_mean": 33.602,
+            "paired_delta": {
+              "mean": -12.4557,
+              "lo": -36.7663,
+              "hi": 1.4617
+            },
+            "relative_pct": -37.07,
+            "seeds_agent_better": 13,
+            "seeds_tied": 13,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "energy_kwh": {
+            "agent_mean": 1475.355,
+            "baseline_mean": 1476.4213,
+            "paired_delta": {
+              "mean": -1.0663,
+              "lo": -3.199,
+              "hi": 0.0
+            },
+            "relative_pct": -0.07,
+            "seeds_agent_better": 0,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "port_utilisation": {
+            "agent_mean": 0.3303,
+            "baseline_mean": 0.346,
+            "paired_delta": {
+              "mean": -0.0157,
+              "lo": -0.0257,
+              "hi": -0.0054
+            },
+            "relative_pct": -4.54,
+            "seeds_agent_better": 5,
+            "seeds_tied": 6,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": false
+          }
+        },
+        "soc": {
+          "on_time_rate": {
+            "agent_mean": 0.7673,
+            "baseline_mean": 0.7496,
+            "paired_delta": {
+              "mean": 0.0177,
+              "lo": 0.0054,
+              "hi": 0.0313
+            },
+            "relative_pct": 2.36,
+            "seeds_agent_better": 14,
+            "seeds_tied": 14,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.6942,
+            "baseline_mean": 0.6862,
+            "paired_delta": {
+              "mean": 0.008,
+              "lo": -0.0083,
+              "hi": 0.0225
+            },
+            "relative_pct": 1.17,
+            "seeds_agent_better": 9,
+            "seeds_tied": 18,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9845,
+            "baseline_mean": 0.985,
+            "paired_delta": {
+              "mean": -0.0005,
+              "lo": -0.0014,
+              "hi": 0.0
+            },
+            "relative_pct": -0.05,
+            "seeds_agent_better": 0,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "avg_wait_min": {
+            "agent_mean": 4.4863,
+            "baseline_mean": 6.6773,
+            "paired_delta": {
+              "mean": -2.191,
+              "lo": -5.8863,
+              "hi": -0.1027
+            },
+            "relative_pct": -32.81,
+            "seeds_agent_better": 14,
+            "seeds_tied": 11,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 21.1463,
+            "baseline_mean": 35.4617,
+            "paired_delta": {
+              "mean": -14.3153,
+              "lo": -40.585,
+              "hi": 0.4623
+            },
+            "relative_pct": -40.37,
+            "seeds_agent_better": 12,
+            "seeds_tied": 14,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "energy_kwh": {
+            "agent_mean": 1475.355,
+            "baseline_mean": 1476.4213,
+            "paired_delta": {
+              "mean": -1.0663,
+              "lo": -3.199,
+              "hi": 0.0
+            },
+            "relative_pct": -0.07,
+            "seeds_agent_better": 0,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "port_utilisation": {
+            "agent_mean": 0.3303,
+            "baseline_mean": 0.3441,
+            "paired_delta": {
+              "mean": -0.0138,
+              "lo": -0.0237,
+              "hi": -0.0036
+            },
+            "relative_pct": -4.01,
+            "seeds_agent_better": 6,
+            "seeds_tied": 6,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": false
+          }
+        },
+        "agent_no_validation": {
+          "on_time_rate": {
+            "agent_mean": 0.7673,
+            "baseline_mean": 0.7664,
+            "paired_delta": {
+              "mean": 0.0009,
+              "lo": 0.0,
+              "hi": 0.0026
+            },
+            "relative_pct": 0.12,
+            "seeds_agent_better": 1,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.6942,
+            "baseline_mean": 0.6942,
+            "paired_delta": {
+              "mean": 0.0,
+              "lo": 0.0,
+              "hi": 0.0
+            },
+            "relative_pct": 0.0,
+            "seeds_agent_better": 0,
+            "seeds_tied": 30,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "served_rate": {
+            "agent_mean": 0.9845,
+            "baseline_mean": 0.985,
+            "paired_delta": {
+              "mean": -0.0005,
+              "lo": -0.0014,
+              "hi": 0.0
+            },
+            "relative_pct": -0.05,
+            "seeds_agent_better": 0,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "avg_wait_min": {
+            "agent_mean": 4.4863,
+            "baseline_mean": 5.305,
+            "paired_delta": {
+              "mean": -0.8187,
+              "lo": -2.456,
+              "hi": 0.0
+            },
+            "relative_pct": -15.43,
+            "seeds_agent_better": 1,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 21.1463,
+            "baseline_mean": 23.5067,
+            "paired_delta": {
+              "mean": -2.3603,
+              "lo": -7.067,
+              "hi": 0.0
+            },
+            "relative_pct": -10.04,
+            "seeds_agent_better": 2,
+            "seeds_tied": 28,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "energy_kwh": {
+            "agent_mean": 1475.355,
+            "baseline_mean": 1476.4213,
+            "paired_delta": {
+              "mean": -1.0663,
+              "lo": -3.199,
+              "hi": 0.0
+            },
+            "relative_pct": -0.07,
+            "seeds_agent_better": 0,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "port_utilisation": {
+            "agent_mean": 0.3303,
+            "baseline_mean": 0.3318,
+            "paired_delta": {
+              "mean": -0.0015,
+              "lo": -0.004,
+              "hi": 0.0001
+            },
+            "relative_pct": -0.45,
+            "seeds_agent_better": 1,
+            "seeds_tied": 27,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          }
+        },
+        "agent_no_deadline": {
+          "on_time_rate": {
+            "agent_mean": 0.7673,
+            "baseline_mean": 0.7603,
+            "paired_delta": {
+              "mean": 0.007,
+              "lo": 0.0024,
+              "hi": 0.0124
+            },
+            "relative_pct": 0.92,
+            "seeds_agent_better": 7,
+            "seeds_tied": 23,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.6942,
+            "baseline_mean": 0.6926,
+            "paired_delta": {
+              "mean": 0.0017,
+              "lo": -0.0033,
+              "hi": 0.0079
+            },
+            "relative_pct": 0.25,
+            "seeds_agent_better": 2,
+            "seeds_tied": 27,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9845,
+            "baseline_mean": 0.9845,
+            "paired_delta": {
+              "mean": 0.0,
+              "lo": 0.0,
+              "hi": 0.0
+            },
+            "relative_pct": 0.0,
+            "seeds_agent_better": 0,
+            "seeds_tied": 30,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "avg_wait_min": {
+            "agent_mean": 4.4863,
+            "baseline_mean": 4.6197,
+            "paired_delta": {
+              "mean": -0.1333,
+              "lo": -0.455,
+              "hi": 0.0637
+            },
+            "relative_pct": -2.89,
+            "seeds_agent_better": 5,
+            "seeds_tied": 20,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 21.1463,
+            "baseline_mean": 20.251,
+            "paired_delta": {
+              "mean": 0.8953,
+              "lo": -0.937,
+              "hi": 3.1107
+            },
+            "relative_pct": 4.42,
+            "seeds_agent_better": 7,
+            "seeds_tied": 19,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "energy_kwh": {
+            "agent_mean": 1475.355,
+            "baseline_mean": 1475.355,
+            "paired_delta": {
+              "mean": 0.0,
+              "lo": 0.0,
+              "hi": 0.0
+            },
+            "relative_pct": 0.0,
+            "seeds_agent_better": 0,
+            "seeds_tied": 30,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "port_utilisation": {
+            "agent_mean": 0.3303,
+            "baseline_mean": 0.3314,
+            "paired_delta": {
+              "mean": -0.0011,
+              "lo": -0.0057,
+              "hi": 0.0032
+            },
+            "relative_pct": -0.33,
+            "seeds_agent_better": 7,
+            "seeds_tied": 20,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          }
+        }
+      }
+    },
+    "MEDIUM": {
+      "arrivals_per_hour": 5.0,
+      "mean_arrivals_per_day": 118.0,
+      "policies": {
+        "fifo": {
+          "label": "FIFO",
+          "family": "conventional",
+          "metrics": {
+            "arrived": {
+              "mean": 118.0333,
+              "lo": 114.3,
+              "hi": 121.9
+            },
+            "served": {
+              "mean": 116.2,
+              "lo": 112.5,
+              "hi": 120.0333
+            },
+            "served_rate": {
+              "mean": 0.9844,
+              "lo": 0.9805,
+              "hi": 0.9884
+            },
+            "deadline_evs": {
+              "mean": 69.8667,
+              "lo": 67.2667,
+              "hi": 72.5
+            },
+            "on_time_rate": {
+              "mean": 0.5138,
+              "lo": 0.4494,
+              "hi": 0.5761
+            },
+            "deadline_miss_rate": {
+              "mean": 0.4862,
+              "lo": 0.4239,
+              "hi": 0.5508
+            },
+            "mean_lateness_min": {
+              "mean": 109.7943,
+              "lo": 87.7763,
+              "hi": 135.681
+            },
+            "critical_on_time_rate": {
+              "mean": 0.3929,
+              "lo": 0.3255,
+              "hi": 0.4591
+            },
+            "avg_wait_min": {
+              "mean": 55.9233,
+              "lo": 36.803,
+              "hi": 79.6473
+            },
+            "p95_wait_min": {
+              "mean": 173.009,
+              "lo": 124.6777,
+              "hi": 229.1967
+            },
+            "max_wait_min": {
+              "mean": 253.38,
+              "lo": 196.7333,
+              "hi": 315.0593
+            },
+            "energy_kwh": {
+              "mean": 2445.0777,
+              "lo": 2354.243,
+              "hi": 2535.504
+            },
+            "port_utilisation": {
+              "mean": 0.6232,
+              "lo": 0.5806,
+              "hi": 0.6677
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 244.9667,
+              "lo": 153.6333,
+              "hi": 358.3667
+            }
+          }
+        },
+        "sjf": {
+          "label": "Shortest Job First",
+          "family": "conventional",
+          "metrics": {
+            "arrived": {
+              "mean": 118.0333,
+              "lo": 114.3,
+              "hi": 121.9
+            },
+            "served": {
+              "mean": 116.1333,
+              "lo": 112.4333,
+              "hi": 119.9667
+            },
+            "served_rate": {
+              "mean": 0.9839,
+              "lo": 0.98,
+              "hi": 0.9879
+            },
+            "deadline_evs": {
+              "mean": 69.8667,
+              "lo": 67.2667,
+              "hi": 72.5
+            },
+            "on_time_rate": {
+              "mean": 0.5974,
+              "lo": 0.5529,
+              "hi": 0.64
+            },
+            "deadline_miss_rate": {
+              "mean": 0.4026,
+              "lo": 0.36,
+              "hi": 0.4471
+            },
+            "mean_lateness_min": {
+              "mean": 91.209,
+              "lo": 77.7243,
+              "hi": 105.6523
+            },
+            "critical_on_time_rate": {
+              "mean": 0.4962,
+              "lo": 0.4478,
+              "hi": 0.5432
+            },
+            "avg_wait_min": {
+              "mean": 34.1333,
+              "lo": 24.1127,
+              "hi": 45.7303
+            },
+            "p95_wait_min": {
+              "mean": 194.1003,
+              "lo": 130.7817,
+              "hi": 268.4643
+            },
+            "max_wait_min": {
+              "mean": 482.5893,
+              "lo": 378.2413,
+              "hi": 594.08
+            },
+            "energy_kwh": {
+              "mean": 2442.511,
+              "lo": 2350.7803,
+              "hi": 2534.2197
+            },
+            "port_utilisation": {
+              "mean": 0.6249,
+              "lo": 0.585,
+              "hi": 0.6668
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 224.1,
+              "lo": 145.5,
+              "hi": 320.9
+            }
+          }
+        },
+        "soc": {
+          "label": "Lowest SOC First",
+          "family": "conventional",
+          "metrics": {
+            "arrived": {
+              "mean": 118.0333,
+              "lo": 114.3,
+              "hi": 121.9
+            },
+            "served": {
+              "mean": 116.2333,
+              "lo": 112.5333,
+              "hi": 120.0333
+            },
+            "served_rate": {
+              "mean": 0.9847,
+              "lo": 0.9808,
+              "hi": 0.9887
+            },
+            "deadline_evs": {
+              "mean": 69.8667,
+              "lo": 67.2667,
+              "hi": 72.5
+            },
+            "on_time_rate": {
+              "mean": 0.5689,
+              "lo": 0.5199,
+              "hi": 0.6185
+            },
+            "deadline_miss_rate": {
+              "mean": 0.4311,
+              "lo": 0.3816,
+              "hi": 0.4802
+            },
+            "mean_lateness_min": {
+              "mean": 93.753,
+              "lo": 78.6097,
+              "hi": 110.1807
+            },
+            "critical_on_time_rate": {
+              "mean": 0.4733,
+              "lo": 0.4263,
+              "hi": 0.5215
+            },
+            "avg_wait_min": {
+              "mean": 43.379,
+              "lo": 28.8197,
+              "hi": 59.5307
+            },
+            "p95_wait_min": {
+              "mean": 236.6967,
+              "lo": 155.8897,
+              "hi": 325.3647
+            },
+            "max_wait_min": {
+              "mean": 472.031,
+              "lo": 360.851,
+              "hi": 592.4323
+            },
+            "energy_kwh": {
+              "mean": 2449.4017,
+              "lo": 2357.0843,
+              "hi": 2541.674
+            },
+            "port_utilisation": {
+              "mean": 0.6197,
+              "lo": 0.5802,
+              "hi": 0.6615
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 213.4333,
+              "lo": 145.1333,
+              "hi": 289.6
+            }
+          }
+        },
+        "agent": {
+          "label": "EV NEXUS Agent",
+          "family": "agent",
+          "metrics": {
+            "arrived": {
+              "mean": 118.0333,
+              "lo": 114.3,
+              "hi": 121.9
+            },
+            "served": {
+              "mean": 116.1,
+              "lo": 112.4333,
+              "hi": 119.8333
+            },
+            "served_rate": {
+              "mean": 0.9837,
+              "lo": 0.9798,
+              "hi": 0.9878
+            },
+            "deadline_evs": {
+              "mean": 69.8667,
+              "lo": 67.2667,
+              "hi": 72.5
+            },
+            "on_time_rate": {
+              "mean": 0.6569,
+              "lo": 0.6285,
+              "hi": 0.6858
+            },
+            "deadline_miss_rate": {
+              "mean": 0.3431,
+              "lo": 0.3142,
+              "hi": 0.3715
+            },
+            "mean_lateness_min": {
+              "mean": 78.0447,
+              "lo": 67.5073,
+              "hi": 89.6737
+            },
+            "critical_on_time_rate": {
+              "mean": 0.5402,
+              "lo": 0.5029,
+              "hi": 0.5773
+            },
+            "avg_wait_min": {
+              "mean": 23.4323,
+              "lo": 16.9987,
+              "hi": 31.0247
+            },
+            "p95_wait_min": {
+              "mean": 107.9163,
+              "lo": 83.2723,
+              "hi": 136.301
+            },
+            "max_wait_min": {
+              "mean": 277.861,
+              "lo": 214.7687,
+              "hi": 358.458
+            },
+            "energy_kwh": {
+              "mean": 2442.0853,
+              "lo": 2351.584,
+              "hi": 2532.383
+            },
+            "port_utilisation": {
+              "mean": 0.5922,
+              "lo": 0.5578,
+              "hi": 0.6278
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 233.3,
+              "lo": 165.3667,
+              "hi": 314.3667
+            }
+          }
+        },
+        "agent_no_validation": {
+          "label": "Agent (no validator)",
+          "family": "ablation",
+          "metrics": {
+            "arrived": {
+              "mean": 118.0333,
+              "lo": 114.3,
+              "hi": 121.9
+            },
+            "served": {
+              "mean": 116.1333,
+              "lo": 112.4667,
+              "hi": 119.9
+            },
+            "served_rate": {
+              "mean": 0.984,
+              "lo": 0.9801,
+              "hi": 0.9879
+            },
+            "deadline_evs": {
+              "mean": 69.8667,
+              "lo": 67.2667,
+              "hi": 72.5
+            },
+            "on_time_rate": {
+              "mean": 0.6562,
+              "lo": 0.6272,
+              "hi": 0.6854
+            },
+            "deadline_miss_rate": {
+              "mean": 0.3438,
+              "lo": 0.3146,
+              "hi": 0.3728
+            },
+            "mean_lateness_min": {
+              "mean": 79.5197,
+              "lo": 68.9703,
+              "hi": 90.84
+            },
+            "critical_on_time_rate": {
+              "mean": 0.5442,
+              "lo": 0.5081,
+              "hi": 0.5797
+            },
+            "avg_wait_min": {
+              "mean": 23.006,
+              "lo": 16.8253,
+              "hi": 30.507
+            },
+            "p95_wait_min": {
+              "mean": 105.9447,
+              "lo": 83.545,
+              "hi": 129.879
+            },
+            "max_wait_min": {
+              "mean": 281.3247,
+              "lo": 217.8533,
+              "hi": 363.2783
+            },
+            "energy_kwh": {
+              "mean": 2443.3647,
+              "lo": 2352.1317,
+              "hi": 2534.422
+            },
+            "port_utilisation": {
+              "mean": 0.5924,
+              "lo": 0.5589,
+              "hi": 0.6273
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 233.3,
+              "lo": 165.1,
+              "hi": 314.7333
+            }
+          }
+        },
+        "agent_no_deadline": {
+          "label": "Agent (no deadlines)",
+          "family": "ablation",
+          "metrics": {
+            "arrived": {
+              "mean": 118.0333,
+              "lo": 114.3,
+              "hi": 121.9
+            },
+            "served": {
+              "mean": 116.1667,
+              "lo": 112.5333,
+              "hi": 119.9
+            },
+            "served_rate": {
+              "mean": 0.9843,
+              "lo": 0.9804,
+              "hi": 0.9883
+            },
+            "deadline_evs": {
+              "mean": 69.8667,
+              "lo": 67.2667,
+              "hi": 72.5
+            },
+            "on_time_rate": {
+              "mean": 0.6138,
+              "lo": 0.5725,
+              "hi": 0.6534
+            },
+            "deadline_miss_rate": {
+              "mean": 0.3862,
+              "lo": 0.3467,
+              "hi": 0.4275
+            },
+            "mean_lateness_min": {
+              "mean": 75.2713,
+              "lo": 65.8467,
+              "hi": 85.3367
+            },
+            "critical_on_time_rate": {
+              "mean": 0.5077,
+              "lo": 0.4589,
+              "hi": 0.5538
+            },
+            "avg_wait_min": {
+              "mean": 23.9623,
+              "lo": 17.3887,
+              "hi": 31.7643
+            },
+            "p95_wait_min": {
+              "mean": 102.2253,
+              "lo": 78.3723,
+              "hi": 128.229
+            },
+            "max_wait_min": {
+              "mean": 300.2037,
+              "lo": 225.2573,
+              "hi": 401.2253
+            },
+            "energy_kwh": {
+              "mean": 2445.3967,
+              "lo": 2355.638,
+              "hi": 2535.127
+            },
+            "port_utilisation": {
+              "mean": 0.5984,
+              "lo": 0.5624,
+              "hi": 0.6353
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 239.7333,
+              "lo": 173.1,
+              "hi": 314.2667
+            }
+          }
+        }
+      },
+      "paired_vs_agent": {
+        "fifo": {
+          "on_time_rate": {
+            "agent_mean": 0.6569,
+            "baseline_mean": 0.5138,
+            "paired_delta": {
+              "mean": 0.1431,
+              "lo": 0.1029,
+              "hi": 0.1861
+            },
+            "relative_pct": 27.85,
+            "seeds_agent_better": 27,
+            "seeds_tied": 1,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.5402,
+            "baseline_mean": 0.3929,
+            "paired_delta": {
+              "mean": 0.1473,
+              "lo": 0.1057,
+              "hi": 0.1898
+            },
+            "relative_pct": 37.49,
+            "seeds_agent_better": 27,
+            "seeds_tied": 1,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9837,
+            "baseline_mean": 0.9844,
+            "paired_delta": {
+              "mean": -0.0007,
+              "lo": -0.0024,
+              "hi": 0.0008
+            },
+            "relative_pct": -0.07,
+            "seeds_agent_better": 2,
+            "seeds_tied": 24,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "avg_wait_min": {
+            "agent_mean": 23.4323,
+            "baseline_mean": 55.9233,
+            "paired_delta": {
+              "mean": -32.491,
+              "lo": -49.8543,
+              "hi": -18.6767
+            },
+            "relative_pct": -58.1,
+            "seeds_agent_better": 25,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 107.9163,
+            "baseline_mean": 173.009,
+            "paired_delta": {
+              "mean": -65.0927,
+              "lo": -101.7937,
+              "hi": -33.6943
+            },
+            "relative_pct": -37.62,
+            "seeds_agent_better": 22,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "energy_kwh": {
+            "agent_mean": 2442.0853,
+            "baseline_mean": 2445.0777,
+            "paired_delta": {
+              "mean": -2.9923,
+              "lo": -13.3593,
+              "hi": 6.596
+            },
+            "relative_pct": -0.12,
+            "seeds_agent_better": 2,
+            "seeds_tied": 24,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "port_utilisation": {
+            "agent_mean": 0.5922,
+            "baseline_mean": 0.6232,
+            "paired_delta": {
+              "mean": -0.0309,
+              "lo": -0.0486,
+              "hi": -0.0142
+            },
+            "relative_pct": -4.96,
+            "seeds_agent_better": 7,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": false
+          }
+        },
+        "sjf": {
+          "on_time_rate": {
+            "agent_mean": 0.6569,
+            "baseline_mean": 0.5974,
+            "paired_delta": {
+              "mean": 0.0595,
+              "lo": 0.0383,
+              "hi": 0.0827
+            },
+            "relative_pct": 9.96,
+            "seeds_agent_better": 24,
+            "seeds_tied": 3,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.5402,
+            "baseline_mean": 0.4962,
+            "paired_delta": {
+              "mean": 0.044,
+              "lo": 0.0201,
+              "hi": 0.07
+            },
+            "relative_pct": 8.87,
+            "seeds_agent_better": 20,
+            "seeds_tied": 5,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9837,
+            "baseline_mean": 0.9839,
+            "paired_delta": {
+              "mean": -0.0002,
+              "lo": -0.0013,
+              "hi": 0.001
+            },
+            "relative_pct": -0.02,
+            "seeds_agent_better": 2,
+            "seeds_tied": 25,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "avg_wait_min": {
+            "agent_mean": 23.4323,
+            "baseline_mean": 34.1333,
+            "paired_delta": {
+              "mean": -10.701,
+              "lo": -16.6993,
+              "hi": -5.074
+            },
+            "relative_pct": -31.35,
+            "seeds_agent_better": 19,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 107.9163,
+            "baseline_mean": 194.1003,
+            "paired_delta": {
+              "mean": -86.184,
+              "lo": -139.452,
+              "hi": -42.0013
+            },
+            "relative_pct": -44.4,
+            "seeds_agent_better": 21,
+            "seeds_tied": 1,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "energy_kwh": {
+            "agent_mean": 2442.0853,
+            "baseline_mean": 2442.511,
+            "paired_delta": {
+              "mean": -0.4257,
+              "lo": -6.914,
+              "hi": 6.6783
+            },
+            "relative_pct": -0.02,
+            "seeds_agent_better": 2,
+            "seeds_tied": 25,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "port_utilisation": {
+            "agent_mean": 0.5922,
+            "baseline_mean": 0.6249,
+            "paired_delta": {
+              "mean": -0.0327,
+              "lo": -0.0469,
+              "hi": -0.0182
+            },
+            "relative_pct": -5.23,
+            "seeds_agent_better": 7,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": false
+          }
+        },
+        "soc": {
+          "on_time_rate": {
+            "agent_mean": 0.6569,
+            "baseline_mean": 0.5689,
+            "paired_delta": {
+              "mean": 0.088,
+              "lo": 0.0596,
+              "hi": 0.1169
+            },
+            "relative_pct": 15.47,
+            "seeds_agent_better": 25,
+            "seeds_tied": 2,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.5402,
+            "baseline_mean": 0.4733,
+            "paired_delta": {
+              "mean": 0.0669,
+              "lo": 0.0435,
+              "hi": 0.0911
+            },
+            "relative_pct": 14.13,
+            "seeds_agent_better": 22,
+            "seeds_tied": 5,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9837,
+            "baseline_mean": 0.9847,
+            "paired_delta": {
+              "mean": -0.001,
+              "lo": -0.0023,
+              "hi": 0.0
+            },
+            "relative_pct": -0.1,
+            "seeds_agent_better": 0,
+            "seeds_tied": 27,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "avg_wait_min": {
+            "agent_mean": 23.4323,
+            "baseline_mean": 43.379,
+            "paired_delta": {
+              "mean": -19.9467,
+              "lo": -30.2697,
+              "hi": -10.7573
+            },
+            "relative_pct": -45.98,
+            "seeds_agent_better": 23,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 107.9163,
+            "baseline_mean": 236.6967,
+            "paired_delta": {
+              "mean": -128.7803,
+              "lo": -197.3107,
+              "hi": -67.306
+            },
+            "relative_pct": -54.41,
+            "seeds_agent_better": 21,
+            "seeds_tied": 1,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "energy_kwh": {
+            "agent_mean": 2442.0853,
+            "baseline_mean": 2449.4017,
+            "paired_delta": {
+              "mean": -7.3163,
+              "lo": -15.7457,
+              "hi": -0.9837
+            },
+            "relative_pct": -0.3,
+            "seeds_agent_better": 0,
+            "seeds_tied": 25,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": false
+          },
+          "port_utilisation": {
+            "agent_mean": 0.5922,
+            "baseline_mean": 0.6197,
+            "paired_delta": {
+              "mean": -0.0275,
+              "lo": -0.041,
+              "hi": -0.0131
+            },
+            "relative_pct": -4.44,
+            "seeds_agent_better": 7,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": false
+          }
+        },
+        "agent_no_validation": {
+          "on_time_rate": {
+            "agent_mean": 0.6569,
+            "baseline_mean": 0.6562,
+            "paired_delta": {
+              "mean": 0.0007,
+              "lo": -0.0075,
+              "hi": 0.0102
+            },
+            "relative_pct": 0.11,
+            "seeds_agent_better": 7,
+            "seeds_tied": 15,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.5402,
+            "baseline_mean": 0.5442,
+            "paired_delta": {
+              "mean": -0.004,
+              "lo": -0.0185,
+              "hi": 0.0134
+            },
+            "relative_pct": -0.74,
+            "seeds_agent_better": 5,
+            "seeds_tied": 17,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "served_rate": {
+            "agent_mean": 0.9837,
+            "baseline_mean": 0.984,
+            "paired_delta": {
+              "mean": -0.0002,
+              "lo": -0.0007,
+              "hi": 0.0
+            },
+            "relative_pct": -0.02,
+            "seeds_agent_better": 0,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "avg_wait_min": {
+            "agent_mean": 23.4323,
+            "baseline_mean": 23.006,
+            "paired_delta": {
+              "mean": 0.4263,
+              "lo": -1.7613,
+              "hi": 3.3073
+            },
+            "relative_pct": 1.85,
+            "seeds_agent_better": 9,
+            "seeds_tied": 9,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "p95_wait_min": {
+            "agent_mean": 107.9163,
+            "baseline_mean": 105.9447,
+            "paired_delta": {
+              "mean": 1.9717,
+              "lo": -7.255,
+              "hi": 12.7957
+            },
+            "relative_pct": 1.86,
+            "seeds_agent_better": 10,
+            "seeds_tied": 10,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "energy_kwh": {
+            "agent_mean": 2442.0853,
+            "baseline_mean": 2443.3647,
+            "paired_delta": {
+              "mean": -1.2793,
+              "lo": -3.838,
+              "hi": 0.0
+            },
+            "relative_pct": -0.05,
+            "seeds_agent_better": 0,
+            "seeds_tied": 29,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "port_utilisation": {
+            "agent_mean": 0.5922,
+            "baseline_mean": 0.5924,
+            "paired_delta": {
+              "mean": -0.0002,
+              "lo": -0.0092,
+              "hi": 0.0087
+            },
+            "relative_pct": -0.03,
+            "seeds_agent_better": 12,
+            "seeds_tied": 10,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          }
+        },
+        "agent_no_deadline": {
+          "on_time_rate": {
+            "agent_mean": 0.6569,
+            "baseline_mean": 0.6138,
+            "paired_delta": {
+              "mean": 0.0431,
+              "lo": 0.0265,
+              "hi": 0.0607
+            },
+            "relative_pct": 7.02,
+            "seeds_agent_better": 24,
+            "seeds_tied": 4,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.5402,
+            "baseline_mean": 0.5077,
+            "paired_delta": {
+              "mean": 0.0326,
+              "lo": 0.0171,
+              "hi": 0.0495
+            },
+            "relative_pct": 6.42,
+            "seeds_agent_better": 17,
+            "seeds_tied": 10,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9837,
+            "baseline_mean": 0.9843,
+            "paired_delta": {
+              "mean": -0.0006,
+              "lo": -0.0017,
+              "hi": 0.0005
+            },
+            "relative_pct": -0.06,
+            "seeds_agent_better": 1,
+            "seeds_tied": 26,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "avg_wait_min": {
+            "agent_mean": 23.4323,
+            "baseline_mean": 23.9623,
+            "paired_delta": {
+              "mean": -0.53,
+              "lo": -3.9357,
+              "hi": 3.1373
+            },
+            "relative_pct": -2.21,
+            "seeds_agent_better": 15,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 107.9163,
+            "baseline_mean": 102.2253,
+            "paired_delta": {
+              "mean": 5.691,
+              "lo": -9.228,
+              "hi": 21.6677
+            },
+            "relative_pct": 5.57,
+            "seeds_agent_better": 12,
+            "seeds_tied": 1,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "energy_kwh": {
+            "agent_mean": 2442.0853,
+            "baseline_mean": 2445.3967,
+            "paired_delta": {
+              "mean": -3.3113,
+              "lo": -10.5693,
+              "hi": 2.5917
+            },
+            "relative_pct": -0.14,
+            "seeds_agent_better": 1,
+            "seeds_tied": 26,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "port_utilisation": {
+            "agent_mean": 0.5922,
+            "baseline_mean": 0.5984,
+            "paired_delta": {
+              "mean": -0.0062,
+              "lo": -0.0209,
+              "hi": 0.0079
+            },
+            "relative_pct": -1.04,
+            "seeds_agent_better": 14,
+            "seeds_tied": 2,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          }
+        }
+      }
+    },
+    "HIGH": {
+      "arrivals_per_hour": 6.5,
+      "mean_arrivals_per_day": 156.1,
+      "policies": {
+        "fifo": {
+          "label": "FIFO",
+          "family": "conventional",
+          "metrics": {
+            "arrived": {
+              "mean": 156.1,
+              "lo": 151.6,
+              "hi": 160.5
+            },
+            "served": {
+              "mean": 151.0,
+              "lo": 146.0333,
+              "hi": 155.7
+            },
+            "served_rate": {
+              "mean": 0.968,
+              "lo": 0.9474,
+              "hi": 0.982
+            },
+            "deadline_evs": {
+              "mean": 93.0333,
+              "lo": 89.7667,
+              "hi": 96.2333
+            },
+            "on_time_rate": {
+              "mean": 0.2957,
+              "lo": 0.2531,
+              "hi": 0.339
+            },
+            "deadline_miss_rate": {
+              "mean": 0.7043,
+              "lo": 0.661,
+              "hi": 0.7469
+            },
+            "mean_lateness_min": {
+              "mean": 207.6603,
+              "lo": 169.9383,
+              "hi": 248.3873
+            },
+            "critical_on_time_rate": {
+              "mean": 0.1761,
+              "lo": 0.1393,
+              "hi": 0.2151
+            },
+            "avg_wait_min": {
+              "mean": 163.5447,
+              "lo": 128.5147,
+              "hi": 201.8347
+            },
+            "p95_wait_min": {
+              "mean": 407.341,
+              "lo": 330.0977,
+              "hi": 484.7547
+            },
+            "max_wait_min": {
+              "mean": 468.0133,
+              "lo": 390.011,
+              "hi": 547.3817
+            },
+            "energy_kwh": {
+              "mean": 3162.6307,
+              "lo": 3051.1093,
+              "hi": 3268.7943
+            },
+            "port_utilisation": {
+              "mean": 0.8239,
+              "lo": 0.7871,
+              "hi": 0.861
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 241.3667,
+              "lo": 148.3,
+              "hi": 353.5333
+            }
+          }
+        },
+        "sjf": {
+          "label": "Shortest Job First",
+          "family": "conventional",
+          "metrics": {
+            "arrived": {
+              "mean": 156.1,
+              "lo": 151.6,
+              "hi": 160.5
+            },
+            "served": {
+              "mean": 152.6333,
+              "lo": 148.2,
+              "hi": 156.9667
+            },
+            "served_rate": {
+              "mean": 0.9778,
+              "lo": 0.9729,
+              "hi": 0.9825
+            },
+            "deadline_evs": {
+              "mean": 93.0333,
+              "lo": 89.7667,
+              "hi": 96.2333
+            },
+            "on_time_rate": {
+              "mean": 0.479,
+              "lo": 0.4455,
+              "hi": 0.5097
+            },
+            "deadline_miss_rate": {
+              "mean": 0.521,
+              "lo": 0.4903,
+              "hi": 0.5546
+            },
+            "mean_lateness_min": {
+              "mean": 121.6813,
+              "lo": 105.141,
+              "hi": 139.0863
+            },
+            "critical_on_time_rate": {
+              "mean": 0.3807,
+              "lo": 0.3477,
+              "hi": 0.4123
+            },
+            "avg_wait_min": {
+              "mean": 83.3407,
+              "lo": 69.961,
+              "hi": 97.524
+            },
+            "p95_wait_min": {
+              "mean": 493.1643,
+              "lo": 405.638,
+              "hi": 588.197
+            },
+            "max_wait_min": {
+              "mean": 1035.5417,
+              "lo": 908.663,
+              "hi": 1159.3073
+            },
+            "energy_kwh": {
+              "mean": 3163.048,
+              "lo": 3054.3923,
+              "hi": 3267.6137
+            },
+            "port_utilisation": {
+              "mean": 0.8252,
+              "lo": 0.7915,
+              "hi": 0.8595
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 278.6667,
+              "lo": 198.2667,
+              "hi": 368.2333
+            }
+          }
+        },
+        "soc": {
+          "label": "Lowest SOC First",
+          "family": "conventional",
+          "metrics": {
+            "arrived": {
+              "mean": 156.1,
+              "lo": 151.6,
+              "hi": 160.5
+            },
+            "served": {
+              "mean": 151.8333,
+              "lo": 147.2667,
+              "hi": 156.3
+            },
+            "served_rate": {
+              "mean": 0.9729,
+              "lo": 0.961,
+              "hi": 0.9821
+            },
+            "deadline_evs": {
+              "mean": 93.0333,
+              "lo": 89.7667,
+              "hi": 96.2333
+            },
+            "on_time_rate": {
+              "mean": 0.3936,
+              "lo": 0.3582,
+              "hi": 0.4306
+            },
+            "deadline_miss_rate": {
+              "mean": 0.6064,
+              "lo": 0.5694,
+              "hi": 0.6418
+            },
+            "mean_lateness_min": {
+              "mean": 184.4113,
+              "lo": 152.407,
+              "hi": 217.668
+            },
+            "critical_on_time_rate": {
+              "mean": 0.3323,
+              "lo": 0.303,
+              "hi": 0.364
+            },
+            "avg_wait_min": {
+              "mean": 148.2273,
+              "lo": 120.7483,
+              "hi": 176.6007
+            },
+            "p95_wait_min": {
+              "mean": 762.9973,
+              "lo": 625.926,
+              "hi": 903.185
+            },
+            "max_wait_min": {
+              "mean": 1131.134,
+              "lo": 987.9883,
+              "hi": 1272.465
+            },
+            "energy_kwh": {
+              "mean": 3191.788,
+              "lo": 3080.6613,
+              "hi": 3298.5227
+            },
+            "port_utilisation": {
+              "mean": 0.8365,
+              "lo": 0.8021,
+              "hi": 0.8714
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 239.3,
+              "lo": 162.8667,
+              "hi": 335.7667
+            }
+          }
+        },
+        "agent": {
+          "label": "EV NEXUS Agent",
+          "family": "agent",
+          "metrics": {
+            "arrived": {
+              "mean": 156.1,
+              "lo": 151.6,
+              "hi": 160.5
+            },
+            "served": {
+              "mean": 153.7333,
+              "lo": 149.3333,
+              "hi": 158.0333
+            },
+            "served_rate": {
+              "mean": 0.9849,
+              "lo": 0.9818,
+              "hi": 0.9882
+            },
+            "deadline_evs": {
+              "mean": 93.0333,
+              "lo": 89.7667,
+              "hi": 96.2333
+            },
+            "on_time_rate": {
+              "mean": 0.6156,
+              "lo": 0.593,
+              "hi": 0.6378
+            },
+            "deadline_miss_rate": {
+              "mean": 0.3844,
+              "lo": 0.3622,
+              "hi": 0.407
+            },
+            "mean_lateness_min": {
+              "mean": 106.0463,
+              "lo": 91.3003,
+              "hi": 121.367
+            },
+            "critical_on_time_rate": {
+              "mean": 0.486,
+              "lo": 0.4584,
+              "hi": 0.5135
+            },
+            "avg_wait_min": {
+              "mean": 53.2077,
+              "lo": 45.0397,
+              "hi": 61.8673
+            },
+            "p95_wait_min": {
+              "mean": 225.8127,
+              "lo": 191.9447,
+              "hi": 262.644
+            },
+            "max_wait_min": {
+              "mean": 617.9363,
+              "lo": 518.7543,
+              "hi": 725.7723
+            },
+            "energy_kwh": {
+              "mean": 3227.231,
+              "lo": 3116.511,
+              "hi": 3333.325
+            },
+            "port_utilisation": {
+              "mean": 0.7602,
+              "lo": 0.7291,
+              "hi": 0.7925
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 267.1667,
+              "lo": 183.3667,
+              "hi": 371.1667
+            }
+          }
+        },
+        "agent_no_validation": {
+          "label": "Agent (no validator)",
+          "family": "ablation",
+          "metrics": {
+            "arrived": {
+              "mean": 156.1,
+              "lo": 151.6,
+              "hi": 160.5
+            },
+            "served": {
+              "mean": 153.6333,
+              "lo": 149.3,
+              "hi": 157.8667
+            },
+            "served_rate": {
+              "mean": 0.9844,
+              "lo": 0.9812,
+              "hi": 0.9878
+            },
+            "deadline_evs": {
+              "mean": 93.0333,
+              "lo": 89.7667,
+              "hi": 96.2333
+            },
+            "on_time_rate": {
+              "mean": 0.6158,
+              "lo": 0.5946,
+              "hi": 0.6368
+            },
+            "deadline_miss_rate": {
+              "mean": 0.3842,
+              "lo": 0.3632,
+              "hi": 0.4055
+            },
+            "mean_lateness_min": {
+              "mean": 115.454,
+              "lo": 98.577,
+              "hi": 133.8547
+            },
+            "critical_on_time_rate": {
+              "mean": 0.4912,
+              "lo": 0.4645,
+              "hi": 0.52
+            },
+            "avg_wait_min": {
+              "mean": 54.9403,
+              "lo": 45.2977,
+              "hi": 65.4973
+            },
+            "p95_wait_min": {
+              "mean": 243.859,
+              "lo": 202.6547,
+              "hi": 289.4423
+            },
+            "max_wait_min": {
+              "mean": 666.454,
+              "lo": 560.1187,
+              "hi": 782.657
+            },
+            "energy_kwh": {
+              "mean": 3223.1453,
+              "lo": 3114.312,
+              "hi": 3328.559
+            },
+            "port_utilisation": {
+              "mean": 0.7636,
+              "lo": 0.7319,
+              "hi": 0.7965
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 217.0333,
+              "lo": 149.2,
+              "hi": 304.4333
+            }
+          }
+        },
+        "agent_no_deadline": {
+          "label": "Agent (no deadlines)",
+          "family": "ablation",
+          "metrics": {
+            "arrived": {
+              "mean": 156.1,
+              "lo": 151.6,
+              "hi": 160.5
+            },
+            "served": {
+              "mean": 153.7333,
+              "lo": 149.3667,
+              "hi": 158.0667
+            },
+            "served_rate": {
+              "mean": 0.985,
+              "lo": 0.9818,
+              "hi": 0.9883
+            },
+            "deadline_evs": {
+              "mean": 93.0333,
+              "lo": 89.7667,
+              "hi": 96.2333
+            },
+            "on_time_rate": {
+              "mean": 0.5123,
+              "lo": 0.4775,
+              "hi": 0.5465
+            },
+            "deadline_miss_rate": {
+              "mean": 0.4877,
+              "lo": 0.4536,
+              "hi": 0.5225
+            },
+            "mean_lateness_min": {
+              "mean": 90.031,
+              "lo": 78.4263,
+              "hi": 102.8377
+            },
+            "critical_on_time_rate": {
+              "mean": 0.4211,
+              "lo": 0.3871,
+              "hi": 0.4543
+            },
+            "avg_wait_min": {
+              "mean": 52.3447,
+              "lo": 43.6383,
+              "hi": 62.0453
+            },
+            "p95_wait_min": {
+              "mean": 203.1363,
+              "lo": 171.7663,
+              "hi": 236.724
+            },
+            "max_wait_min": {
+              "mean": 598.598,
+              "lo": 501.6153,
+              "hi": 706.6293
+            },
+            "energy_kwh": {
+              "mean": 3228.6853,
+              "lo": 3118.6787,
+              "hi": 3335.0247
+            },
+            "port_utilisation": {
+              "mean": 0.763,
+              "lo": 0.7317,
+              "hi": 0.7955
+            },
+            "unverified_claim_fast_port_minutes": {
+              "mean": 263.6667,
+              "lo": 188.8,
+              "hi": 347.6667
+            }
+          }
+        }
+      },
+      "paired_vs_agent": {
+        "fifo": {
+          "on_time_rate": {
+            "agent_mean": 0.6156,
+            "baseline_mean": 0.2957,
+            "paired_delta": {
+              "mean": 0.3199,
+              "lo": 0.2832,
+              "hi": 0.356
+            },
+            "relative_pct": 108.19,
+            "seeds_agent_better": 30,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.486,
+            "baseline_mean": 0.1761,
+            "paired_delta": {
+              "mean": 0.31,
+              "lo": 0.276,
+              "hi": 0.3434
+            },
+            "relative_pct": 176.07,
+            "seeds_agent_better": 30,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9849,
+            "baseline_mean": 0.968,
+            "paired_delta": {
+              "mean": 0.017,
+              "lo": 0.0045,
+              "hi": 0.0359
+            },
+            "relative_pct": 1.76,
+            "seeds_agent_better": 13,
+            "seeds_tied": 17,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "avg_wait_min": {
+            "agent_mean": 53.2077,
+            "baseline_mean": 163.5447,
+            "paired_delta": {
+              "mean": -110.337,
+              "lo": -141.7073,
+              "hi": -82.384
+            },
+            "relative_pct": -67.47,
+            "seeds_agent_better": 30,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 225.8127,
+            "baseline_mean": 407.341,
+            "paired_delta": {
+              "mean": -181.5283,
+              "lo": -235.7077,
+              "hi": -129.0817
+            },
+            "relative_pct": -44.56,
+            "seeds_agent_better": 26,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "energy_kwh": {
+            "agent_mean": 3227.231,
+            "baseline_mean": 3162.6307,
+            "paired_delta": {
+              "mean": 64.6003,
+              "lo": 20.715,
+              "hi": 125.3187
+            },
+            "relative_pct": 2.04,
+            "seeds_agent_better": 14,
+            "seeds_tied": 16,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "port_utilisation": {
+            "agent_mean": 0.7602,
+            "baseline_mean": 0.8239,
+            "paired_delta": {
+              "mean": -0.0637,
+              "lo": -0.0777,
+              "hi": -0.0496
+            },
+            "relative_pct": -7.73,
+            "seeds_agent_better": 1,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": false
+          }
+        },
+        "sjf": {
+          "on_time_rate": {
+            "agent_mean": 0.6156,
+            "baseline_mean": 0.479,
+            "paired_delta": {
+              "mean": 0.1366,
+              "lo": 0.1109,
+              "hi": 0.1621
+            },
+            "relative_pct": 28.52,
+            "seeds_agent_better": 29,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.486,
+            "baseline_mean": 0.3807,
+            "paired_delta": {
+              "mean": 0.1053,
+              "lo": 0.072,
+              "hi": 0.1387
+            },
+            "relative_pct": 27.66,
+            "seeds_agent_better": 26,
+            "seeds_tied": 1,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9849,
+            "baseline_mean": 0.9778,
+            "paired_delta": {
+              "mean": 0.0071,
+              "lo": 0.0046,
+              "hi": 0.0099
+            },
+            "relative_pct": 0.73,
+            "seeds_agent_better": 19,
+            "seeds_tied": 11,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "avg_wait_min": {
+            "agent_mean": 53.2077,
+            "baseline_mean": 83.3407,
+            "paired_delta": {
+              "mean": -30.133,
+              "lo": -39.508,
+              "hi": -21.3133
+            },
+            "relative_pct": -36.16,
+            "seeds_agent_better": 26,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 225.8127,
+            "baseline_mean": 493.1643,
+            "paired_delta": {
+              "mean": -267.3517,
+              "lo": -350.4407,
+              "hi": -193.0683
+            },
+            "relative_pct": -54.21,
+            "seeds_agent_better": 27,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "energy_kwh": {
+            "agent_mean": 3227.231,
+            "baseline_mean": 3163.048,
+            "paired_delta": {
+              "mean": 64.183,
+              "lo": 39.796,
+              "hi": 92.2843
+            },
+            "relative_pct": 2.03,
+            "seeds_agent_better": 20,
+            "seeds_tied": 10,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "port_utilisation": {
+            "agent_mean": 0.7602,
+            "baseline_mean": 0.8252,
+            "paired_delta": {
+              "mean": -0.065,
+              "lo": -0.0763,
+              "hi": -0.0537
+            },
+            "relative_pct": -7.88,
+            "seeds_agent_better": 1,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": false
+          }
+        },
+        "soc": {
+          "on_time_rate": {
+            "agent_mean": 0.6156,
+            "baseline_mean": 0.3936,
+            "paired_delta": {
+              "mean": 0.222,
+              "lo": 0.1915,
+              "hi": 0.252
+            },
+            "relative_pct": 56.41,
+            "seeds_agent_better": 30,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.486,
+            "baseline_mean": 0.3323,
+            "paired_delta": {
+              "mean": 0.1537,
+              "lo": 0.1255,
+              "hi": 0.1827
+            },
+            "relative_pct": 46.26,
+            "seeds_agent_better": 29,
+            "seeds_tied": 1,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9849,
+            "baseline_mean": 0.9729,
+            "paired_delta": {
+              "mean": 0.012,
+              "lo": 0.0048,
+              "hi": 0.022
+            },
+            "relative_pct": 1.23,
+            "seeds_agent_better": 15,
+            "seeds_tied": 13,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "avg_wait_min": {
+            "agent_mean": 53.2077,
+            "baseline_mean": 148.2273,
+            "paired_delta": {
+              "mean": -95.0197,
+              "lo": -118.3733,
+              "hi": -73.1623
+            },
+            "relative_pct": -64.1,
+            "seeds_agent_better": 30,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 225.8127,
+            "baseline_mean": 762.9973,
+            "paired_delta": {
+              "mean": -537.1847,
+              "lo": -656.0947,
+              "hi": -419.809
+            },
+            "relative_pct": -70.4,
+            "seeds_agent_better": 30,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "energy_kwh": {
+            "agent_mean": 3227.231,
+            "baseline_mean": 3191.788,
+            "paired_delta": {
+              "mean": 35.443,
+              "lo": 13.486,
+              "hi": 67.0997
+            },
+            "relative_pct": 1.11,
+            "seeds_agent_better": 15,
+            "seeds_tied": 13,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "port_utilisation": {
+            "agent_mean": 0.7602,
+            "baseline_mean": 0.8365,
+            "paired_delta": {
+              "mean": -0.0763,
+              "lo": -0.0895,
+              "hi": -0.0634
+            },
+            "relative_pct": -9.12,
+            "seeds_agent_better": 0,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": false
+          }
+        },
+        "agent_no_validation": {
+          "on_time_rate": {
+            "agent_mean": 0.6156,
+            "baseline_mean": 0.6158,
+            "paired_delta": {
+              "mean": -0.0002,
+              "lo": -0.0111,
+              "hi": 0.0105
+            },
+            "relative_pct": -0.03,
+            "seeds_agent_better": 13,
+            "seeds_tied": 5,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.486,
+            "baseline_mean": 0.4912,
+            "paired_delta": {
+              "mean": -0.0052,
+              "lo": -0.0251,
+              "hi": 0.0138
+            },
+            "relative_pct": -1.06,
+            "seeds_agent_better": 14,
+            "seeds_tied": 5,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "served_rate": {
+            "agent_mean": 0.9849,
+            "baseline_mean": 0.9844,
+            "paired_delta": {
+              "mean": 0.0006,
+              "lo": -0.0003,
+              "hi": 0.0014
+            },
+            "relative_pct": 0.06,
+            "seeds_agent_better": 4,
+            "seeds_tied": 25,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "avg_wait_min": {
+            "agent_mean": 53.2077,
+            "baseline_mean": 54.9403,
+            "paired_delta": {
+              "mean": -1.7327,
+              "lo": -5.8183,
+              "hi": 1.8083
+            },
+            "relative_pct": -3.15,
+            "seeds_agent_better": 14,
+            "seeds_tied": 1,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "p95_wait_min": {
+            "agent_mean": 225.8127,
+            "baseline_mean": 243.859,
+            "paired_delta": {
+              "mean": -18.0463,
+              "lo": -35.134,
+              "hi": -2.4303
+            },
+            "relative_pct": -7.4,
+            "seeds_agent_better": 16,
+            "seeds_tied": 2,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "energy_kwh": {
+            "agent_mean": 3227.231,
+            "baseline_mean": 3223.1453,
+            "paired_delta": {
+              "mean": 4.0857,
+              "lo": -0.993,
+              "hi": 9.4847
+            },
+            "relative_pct": 0.13,
+            "seeds_agent_better": 4,
+            "seeds_tied": 25,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": true
+          },
+          "port_utilisation": {
+            "agent_mean": 0.7602,
+            "baseline_mean": 0.7636,
+            "paired_delta": {
+              "mean": -0.0034,
+              "lo": -0.0103,
+              "hi": 0.0038
+            },
+            "relative_pct": -0.45,
+            "seeds_agent_better": 10,
+            "seeds_tied": 2,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          }
+        },
+        "agent_no_deadline": {
+          "on_time_rate": {
+            "agent_mean": 0.6156,
+            "baseline_mean": 0.5123,
+            "paired_delta": {
+              "mean": 0.1033,
+              "lo": 0.076,
+              "hi": 0.1293
+            },
+            "relative_pct": 20.16,
+            "seeds_agent_better": 27,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "critical_on_time_rate": {
+            "agent_mean": 0.486,
+            "baseline_mean": 0.4211,
+            "paired_delta": {
+              "mean": 0.0649,
+              "lo": 0.034,
+              "hi": 0.0949
+            },
+            "relative_pct": 15.41,
+            "seeds_agent_better": 21,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": true
+          },
+          "served_rate": {
+            "agent_mean": 0.9849,
+            "baseline_mean": 0.985,
+            "paired_delta": {
+              "mean": -0.0,
+              "lo": -0.0007,
+              "hi": 0.0006
+            },
+            "relative_pct": -0.0,
+            "seeds_agent_better": 1,
+            "seeds_tied": 28,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "avg_wait_min": {
+            "agent_mean": 53.2077,
+            "baseline_mean": 52.3447,
+            "paired_delta": {
+              "mean": 0.863,
+              "lo": -3.1643,
+              "hi": 4.8867
+            },
+            "relative_pct": 1.65,
+            "seeds_agent_better": 12,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "p95_wait_min": {
+            "agent_mean": 225.8127,
+            "baseline_mean": 203.1363,
+            "paired_delta": {
+              "mean": 22.6763,
+              "lo": 2.7543,
+              "hi": 43.5333
+            },
+            "relative_pct": 11.16,
+            "seeds_agent_better": 10,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": true,
+            "favours_agent": false
+          },
+          "energy_kwh": {
+            "agent_mean": 3227.231,
+            "baseline_mean": 3228.6853,
+            "paired_delta": {
+              "mean": -1.4543,
+              "lo": -4.1987,
+              "hi": 0.594
+            },
+            "relative_pct": -0.05,
+            "seeds_agent_better": 1,
+            "seeds_tied": 27,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          },
+          "port_utilisation": {
+            "agent_mean": 0.7602,
+            "baseline_mean": 0.763,
+            "paired_delta": {
+              "mean": -0.0028,
+              "lo": -0.0111,
+              "hi": 0.0056
+            },
+            "relative_pct": -0.37,
+            "seeds_agent_better": 15,
+            "seeds_tied": 0,
+            "seeds_total": 30,
+            "significant_at_95": false,
+            "favours_agent": false
+          }
+        }
+      }
+    }
+  },
+  "adversarial": {
+    "congestion": "HIGH",
+    "arrivals_per_hour": 6.5,
+    "note": "At 0% gaming the validator is correctly neutral \u2014 there is nothing to catch. Its value grows with the share of drivers asserting urgency that telemetry contradicts. This is reported as an integrity/anti-gaming property, NOT as a throughput improvement.",
+    "sweep": [
+      {
+        "adversarial_fraction": 0.0,
+        "agent_on_time": 0.5799,
+        "no_validator_on_time": 0.5706,
+        "paired_delta": {
+          "mean": 0.0093,
+          "lo": -0.0096,
+          "hi": 0.0268
+        },
+        "seeds": 12
+      },
+      {
+        "adversarial_fraction": 0.1,
+        "agent_on_time": 0.5872,
+        "no_validator_on_time": 0.5925,
+        "paired_delta": {
+          "mean": -0.0053,
+          "lo": -0.0231,
+          "hi": 0.0141
+        },
+        "seeds": 12
+      },
+      {
+        "adversarial_fraction": 0.2,
+        "agent_on_time": 0.5738,
+        "no_validator_on_time": 0.545,
+        "paired_delta": {
+          "mean": 0.0288,
+          "lo": 0.0024,
+          "hi": 0.0544
+        },
+        "seeds": 12
+      },
+      {
+        "adversarial_fraction": 0.35,
+        "agent_on_time": 0.5856,
+        "no_validator_on_time": 0.5598,
+        "paired_delta": {
+          "mean": 0.0259,
+          "lo": -0.0174,
+          "hi": 0.0684
+        },
+        "seeds": 12
+      },
+      {
+        "adversarial_fraction": 0.5,
+        "agent_on_time": 0.5625,
+        "no_validator_on_time": 0.499,
+        "paired_delta": {
+          "mean": 0.0635,
+          "lo": 0.0358,
+          "hi": 0.0921
+        },
+        "seeds": 12
+      }
+    ]
+  },
+  "scenario_ground_truth": {
+    "A_HARD_DEADLINE": {
+      "message": "I need to leave within 15 minutes.",
+      "true_deadline_min": 15,
+      "true_urgency": "HIGH",
+      "required_kwh": 8.0,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Explicit: 'within 15 minutes'. Departing that soon means they can only take a partial charge (~8 kWh)."
+    },
+    "B_FLEXIBLE": {
+      "message": "I can wait for an hour.",
+      "true_deadline_min": 60,
+      "true_urgency": "MEDIUM",
+      "required_kwh": null,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Explicit: 'an hour' = 60 min of available slack."
+    },
+    "C_FASTEST": {
+      "message": "I need the fastest charging option available.",
+      "true_deadline_min": null,
+      "true_urgency": "HIGH",
+      "required_kwh": null,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Wants speed but states no departure time \u2014 no hard deadline."
+    },
+    "D_CHEAPEST": {
+      "message": "I don't mind waiting. Please minimize my charging cost.",
+      "true_deadline_min": null,
+      "true_urgency": "LOW",
+      "required_kwh": null,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Explicitly time-flexible, cost-sensitive."
+    },
+    "E_GENUINE_EMERGENCY": {
+      "message": "I have a medical emergency and need to leave immediately.",
+      "true_deadline_min": 10,
+      "true_urgency": "CRITICAL",
+      "required_kwh": 8.0,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "'immediately' treated as a 10-minute hard deadline; only enough charge to reach the hospital is required."
+    },
+    "F_CONTRADICTORY_EMERGENCY": {
+      "message": "This is an emergency and I need priority.",
+      "true_deadline_min": null,
+      "true_urgency": "LOW",
+      "required_kwh": null,
+      "wants_full_charge": true,
+      "is_unverified_claim": true,
+      "notes": "Asserts emergency with zero verifiable detail. The adversarial case: telemetry must decide, not the claim. Modelled as wanting a full charge, because that is the actual incentive to lie \u2014 jumping the queue for a large charge on the premium port. A liar who only needed 3 kWh would not be worth validating against."
+    },
+    "G_AMBIGUOUS_TRADEOFF": {
+      "message": "I'm in a hurry but I don't want to spend too much.",
+      "true_deadline_min": null,
+      "true_urgency": "HIGH",
+      "required_kwh": null,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Genuine hurry, no stated time; competing cost preference."
+    },
+    "H_LONG_ROADTRIP": {
+      "message": "I am on a long road trip and need a full charge, can wait 2 hours.",
+      "true_deadline_min": 120,
+      "true_urgency": "MEDIUM",
+      "required_kwh": null,
+      "wants_full_charge": true,
+      "is_unverified_claim": false,
+      "notes": "Explicit: 'can wait 2 hours' = 120 min; wants full charge."
+    },
+    "I_APPOINTMENT": {
+      "message": "Late for my dentist appointment in 20 minutes, just need a quick top up.",
+      "true_deadline_min": 20,
+      "true_urgency": "HIGH",
+      "required_kwh": 8.0,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Explicit 20-minute appointment; message says 'quick top up'."
+    },
+    "J_NIGHT_SHIFT": {
+      "message": "Working the night shift, I can leave the car here for 8 hours.",
+      "true_deadline_min": 480,
+      "true_urgency": "LOW",
+      "required_kwh": null,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Explicit: 8 hours = 480 min. Ideal deferrable load."
+    },
+    "K_BUDGET_STRICT": {
+      "message": "I only have $10 to spend, give me what you can.",
+      "true_deadline_min": null,
+      "true_urgency": "LOW",
+      "required_kwh": null,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Hard $10 cap stated in language, not telemetry."
+    },
+    "L_BABY_IN_CAR": {
+      "message": "I have a crying baby in the car, please give me the fastest port so I can leave ASAP.",
+      "true_deadline_min": 15,
+      "true_urgency": "CRITICAL",
+      "required_kwh": 8.0,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "'ASAP' with a concrete verifiable reason -> 15-minute deadline."
+    },
+    "M_FLIGHT": {
+      "message": "My flight leaves in 2 hours, I need to reach the airport which is 40 mins away.",
+      "true_deadline_min": 80,
+      "true_urgency": "HIGH",
+      "required_kwh": null,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Requires arithmetic: 120 - 40 = 80 min. Deadline is NOT stated directly; it must be derived from the sentence."
+    },
+    "N_LOW_BATTERY_PANIC": {
+      "message": "My car says 1% and I'm scared it will die, please help!",
+      "true_deadline_min": null,
+      "true_urgency": "CRITICAL",
+      "required_kwh": 15.0,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Critical by state of charge, not by departure time. This case is the one conventional telemetry schedulers already handle well."
+    },
+    "O_GROCERY": {
+      "message": "Going into the grocery store for about 45 minutes.",
+      "true_deadline_min": 45,
+      "true_urgency": "LOW",
+      "required_kwh": null,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Explicit ~45 min errand."
+    },
+    "P_MOVIE": {
+      "message": "Watching a movie next door, will be back in 3 hours.",
+      "true_deadline_min": 180,
+      "true_urgency": "LOW",
+      "required_kwh": null,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Explicit: 3 hours = 180 min."
+    },
+    "Q_UBER_DRIVER": {
+      "message": "I'm an Uber driver and I'm losing money every minute I wait here.",
+      "true_deadline_min": null,
+      "true_urgency": "HIGH",
+      "required_kwh": null,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Economic urgency, genuine but with no hard departure time."
+    },
+    "R_DELIVERY": {
+      "message": "Amazon delivery van, need enough charge to finish my route, got 30 mins max.",
+      "true_deadline_min": 30,
+      "true_urgency": "HIGH",
+      "required_kwh": 12.0,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Explicit: '30 mins max'; needs 'enough charge to finish my route'."
+    },
+    "S_CASUAL_COFFEE": {
+      "message": "Grabbing a coffee, no rush at all.",
+      "true_deadline_min": null,
+      "true_urgency": "LOW",
+      "required_kwh": null,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "Explicitly no time pressure."
+    },
+    "T_WIFE_LABOR": {
+      "message": "My wife is in labor! Need fastest charge right now!",
+      "true_deadline_min": 10,
+      "true_urgency": "CRITICAL",
+      "required_kwh": 8.0,
+      "wants_full_charge": false,
+      "is_unverified_claim": false,
+      "notes": "'right now' with a concrete verifiable reason -> 10-minute deadline."
+    }
+  }
+}

@@ -31,6 +31,12 @@ from constraint_validator import ConstraintValidator
 from llm_negotiator import GeminiNegotiator
 from negotiation_types import LLMParsedRequest
 
+# v2 scheduling engine — backs the live policy comparison. The same engine
+# produces benchmark_v2_results.json, so the website and the benchmark report
+# the identical computation rather than two separate implementations.
+from scenario_library import SCENARIOS, EVSpec, generate_arrival_stream
+from schedule_engine import run_all_policies, POLICIES, DEFAULT_STATION
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -304,6 +310,7 @@ def step_simulation(body: SessionRequest = Body(default=SessionRequest())):
 _BENCHMARK_ALLOWLIST = [
     "phase4c5_results.json",
     "phase5_results.json",
+    "benchmark_v2_results.json",
 ]
 
 
@@ -327,6 +334,272 @@ def reset_simulation(body: SessionRequest = Body(default=SessionRequest())):
     session_id = body.session_id or "default"
     _SESSIONS[session_id] = _new_sim()
     return {"status": "ok", "session_id": session_id}
+
+
+# ---------------------------------------------------------------------------
+# Live policy comparison (v2 engine)
+#
+# These endpoints run the SAME deterministic engine that produces
+# benchmark_v2_results.json. The website therefore demonstrates the real
+# computation rather than replaying a stored number, and anyone can change the
+# inputs and watch the schedule change.
+# ---------------------------------------------------------------------------
+
+MAX_COMPARE_EVS = 60
+MAX_COMPARE_HORIZON_MIN = 1440.0
+
+
+class CompareEV(BaseModel):
+    scenario_key: str = Field(..., description="Key from GET /api/scenarios")
+    soc: float = Field(..., ge=0.0, le=100.0)
+    battery_capacity: float = Field(..., gt=0.0, le=250.0)
+    max_charging_rate: float = Field(..., gt=0.0, le=400.0)
+    budget: float = Field(..., ge=0.0, le=1000.0)
+    arrival_min: float = Field(0.0, ge=0.0, le=MAX_COMPARE_HORIZON_MIN)
+
+    @validator("scenario_key")
+    def known_scenario(cls, v):
+        if v not in SCENARIOS:
+            raise ValueError(f"unknown scenario_key {v!r}")
+        return v
+
+
+class CompareRequest(BaseModel):
+    """Either supply an explicit batch of EVs, or ask for a generated stream."""
+    evs: Optional[List[CompareEV]] = None
+    seed: Optional[int] = Field(None, ge=0, le=10_000_000)
+    arrivals_per_hour: Optional[float] = Field(None, gt=0.0, le=20.0)
+    horizon_min: float = Field(240.0, gt=0.0, le=MAX_COMPARE_HORIZON_MIN)
+    station: Optional[List[float]] = None
+    policies: Optional[List[str]] = None
+    # Average the metrics over this many consecutive arrival patterns. A single
+    # sample of a few dozen cars is noisy enough that an ablation can beat the
+    # full agent by chance; averaging makes the displayed comparison trustworthy.
+    # The returned schedule is always the FIRST seed, so the chart still matches
+    # a real, specific run.
+    repeats: int = Field(1, ge=1, le=15)
+
+    @validator("station")
+    def valid_station(cls, v):
+        if v is None:
+            return v
+        if not (1 <= len(v) <= 8):
+            raise ValueError("station must have between 1 and 8 ports")
+        for kw in v:
+            if not (1.0 <= kw <= 400.0):
+                raise ValueError("port power must be between 1 and 400 kW")
+        return v
+
+    @validator("policies")
+    def valid_policies(cls, v):
+        if v is None:
+            return v
+        unknown = [p for p in v if p not in POLICIES]
+        if unknown:
+            raise ValueError(f"unknown policies: {unknown}")
+        return v
+
+
+@app.get("/api/scenarios")
+def list_scenarios():
+    """The canonical driver messages, with what the model extracted from each.
+
+    `true_deadline_min` is included so the UI can show the answer key alongside
+    the decision — but note it is grading data: no scheduling policy reads it.
+    """
+    from scenario_library import load_extractions, extraction_quality_report
+    extractions = load_extractions()
+
+    out = []
+    for key, sc in SCENARIOS.items():
+        ex = extractions.get(key)
+        out.append({
+            "key": key,
+            "message": sc.message,
+            "true_deadline_min": sc.true_deadline_min,
+            "true_urgency": sc.true_urgency,
+            "required_kwh": sc.required_kwh,
+            "wants_full_charge": sc.wants_full_charge,
+            "is_unverified_claim": sc.is_unverified_claim,
+            "notes": sc.notes,
+            "extracted": None if ex is None else {
+                "urgency_level": ex.urgency_level,
+                "deadline_minutes": ex.deadline_minutes,
+                "reason_category": ex.reason_category,
+                "claimed_constraints": ex.claimed_constraints,
+                "confidence": ex.confidence,
+                "explanation": ex.explanation,
+            },
+        })
+
+    return {
+        "scenarios": out,
+        "policies": POLICIES,
+        "default_station": DEFAULT_STATION,
+        "extraction_quality": extraction_quality_report(extractions),
+    }
+
+
+@app.post("/api/compare")
+def compare_policies(req: CompareRequest):
+    """Schedule one identical set of arrivals under every policy."""
+    try:
+        if req.evs:
+            if len(req.evs) > MAX_COMPARE_EVS:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"too many EVs: {len(req.evs)} (max {MAX_COMPARE_EVS})",
+                )
+            specs = [
+                EVSpec(
+                    ev_id=i,
+                    arrival_min=e.arrival_min,
+                    battery_kwh=e.battery_capacity,
+                    soc_pct=e.soc,
+                    max_rate_kw=e.max_charging_rate,
+                    budget=e.budget,
+                    scenario_key=e.scenario_key,
+                )
+                for i, e in enumerate(sorted(req.evs, key=lambda x: x.arrival_min))
+            ]
+        else:
+            # Generated stream. Deterministic in `seed`, so a shared link
+            # reproduces exactly the same schedule for anyone who opens it.
+            specs = generate_arrival_stream(
+                seed=req.seed if req.seed is not None else 42,
+                horizon_min=req.horizon_min,
+                arrivals_per_hour=req.arrivals_per_hour or 5.0,
+            )
+            if len(specs) > MAX_COMPARE_EVS:
+                specs = specs[:MAX_COMPARE_EVS]
+
+        if not specs:
+            raise HTTPException(
+                status_code=422,
+                detail="no EVs to schedule — raise arrivals_per_hour or horizon_min",
+            )
+
+        station = req.station or DEFAULT_STATION
+        # Allow the queue to drain so deadline outcomes are not truncated by the
+        # window; the Gantt is clipped to the display horizon on the client.
+        sim_horizon = max(req.horizon_min, max(s.arrival_min for s in specs) + 480.0)
+
+        results = run_all_policies(
+            specs, station=station, horizon_min=sim_horizon,
+            policies=req.policies, collect_timeline=True,
+        )
+
+        # Optionally average the metrics across additional arrival patterns.
+        # Only meaningful for generated streams; an explicit EV list is a single
+        # fixed scenario with nothing to average over.
+        repeats_used = 1
+        if req.repeats > 1 and not req.evs:
+            base_seed = req.seed if req.seed is not None else 42
+            accum: Dict[str, Dict[str, List[float]]] = {
+                name: {k: [float(v)] for k, v in res.metrics.items()
+                       if isinstance(v, (int, float)) and not isinstance(v, bool)}
+                for name, res in results.items()
+            }
+            for r in range(1, req.repeats):
+                extra = generate_arrival_stream(
+                    seed=base_seed + r * 1013,
+                    horizon_min=req.horizon_min,
+                    arrivals_per_hour=req.arrivals_per_hour or 5.0,
+                )
+                if len(extra) > MAX_COMPARE_EVS:
+                    extra = extra[:MAX_COMPARE_EVS]
+                if not extra:
+                    continue
+                extra_horizon = max(
+                    req.horizon_min, max(s.arrival_min for s in extra) + 480.0)
+                more = run_all_policies(
+                    extra, station=station, horizon_min=extra_horizon,
+                    policies=req.policies, collect_timeline=False,
+                )
+                for name, res in more.items():
+                    for k, v in res.metrics.items():
+                        if isinstance(v, (int, float)) and not isinstance(v, bool):
+                            accum.setdefault(name, {}).setdefault(k, []).append(float(v))
+                repeats_used += 1
+
+            for name, metric_lists in accum.items():
+                averaged = dict(results[name].metrics)
+                for k, vals in metric_lists.items():
+                    averaged[k] = round(sum(vals) / len(vals), 4)
+                results[name].metrics = averaged
+
+        payload = {
+            "config": {
+                "station_kw": station,
+                "num_ports": len(station),
+                "horizon_min": req.horizon_min,
+                "sim_horizon_min": sim_horizon,
+                "num_evs": len(specs),
+                "seed": req.seed,
+                "arrivals_per_hour": req.arrivals_per_hour,
+                "engine": "v2",
+                "repeats": repeats_used,
+                "metrics_note": (
+                    f"metrics averaged over {repeats_used} arrival patterns; "
+                    "the schedule shown is the first one"
+                ) if repeats_used > 1 else "single arrival pattern",
+            },
+            "inputs": [
+                {
+                    "ev_id": s.ev_id,
+                    "arrival_min": s.arrival_min,
+                    "scenario_key": s.scenario_key,
+                    "message": s.message,
+                    "soc": s.soc_pct,
+                    "battery_kwh": s.battery_kwh,
+                    "max_rate_kw": s.max_rate_kw,
+                    "budget": s.budget,
+                    "true_deadline_min": SCENARIOS[s.scenario_key].true_deadline_min,
+                    "true_urgency": SCENARIOS[s.scenario_key].true_urgency,
+                    "is_unverified_claim": SCENARIOS[s.scenario_key].is_unverified_claim,
+                }
+                for s in specs
+            ],
+            "policies": {
+                name: {
+                    "label": POLICIES[name]["label"],
+                    "family": POLICIES[name]["family"],
+                    "metrics": res.metrics,
+                    "timeline": res.timeline,
+                    "unserved": res.unserved,
+                }
+                for name, res in results.items()
+            },
+        }
+
+        # Headline deltas, computed server-side so the UI cannot drift from the
+        # benchmark's definition of "improvement".
+        if "agent" in results:
+            agent_m = results["agent"].metrics
+            deltas = {}
+            for name, res in results.items():
+                if name == "agent":
+                    continue
+                b = res.metrics
+                deltas[name] = {
+                    "label": POLICIES[name]["label"],
+                    "on_time_rate_pp": round(
+                        (agent_m["on_time_rate"] - b["on_time_rate"]) * 100, 2),
+                    "critical_on_time_pp": round(
+                        (agent_m["critical_on_time_rate"] - b["critical_on_time_rate"]) * 100, 2),
+                    "avg_wait_min": round(agent_m["avg_wait_min"] - b["avg_wait_min"], 2),
+                    "p95_wait_min": round(agent_m["p95_wait_min"] - b["p95_wait_min"], 2),
+                    "served": agent_m["served"] - b["served"],
+                }
+            payload["agent_vs"] = deltas
+
+        return payload
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in compare: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/new-session")

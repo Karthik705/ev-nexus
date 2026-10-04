@@ -1,5 +1,45 @@
 # EV NEXUS — Test Report
 
+> **Update — v2 scheduling engine pass.** Two suites now exist and both were run in
+> full. Browser E2E, previously recorded here as impossible for lack of tooling, is
+> now implemented and passing.
+>
+> | Suite | Command | Result |
+> |---|---|---|
+> | Python | `pytest tests/ -v` | **32 passed** (10 legacy + 22 new engine) |
+> | Browser E2E | `cd frontend && npm run test:e2e` | **9 passed** (real Chromium, real backend, production bundle) |
+> | Frontend build | `cd frontend && npm run build` | 0 TypeScript errors |
+>
+> **Two real bugs were found by the new tests and fixed:**
+>
+> 1. *Port double-booking.* A session's completion was recorded at `now + step` while
+>    the freed port was reassigned at `now`, overlapping by one minute.
+>    `test_no_port_is_double_booked` caught it; fixed by reordering the simulation tick
+>    to admit → dispatch → advance.
+> 2. *A false positive in my own test.* `test_ground_truth_is_never_used_as_a_belief`
+>    flagged `L_BABY_IN_CAR` as a leak because the agent's implied CRITICAL deadline
+>    (15 min) coincidentally equals its ground truth (15 min). Equality cannot
+>    distinguish a leak from a coincidence, so the test was replaced with a causal one
+>    that perturbs ground truth by +997 min and asserts decisions do not change.
+>
+> **Two bugs in the agent itself were found by calibration, not by tests**, and are
+> recorded here because they materially changed the result:
+>
+> 1. The power-efficiency term used the ratio `min(port, rate) / port`, which scored a
+>    50 kW car on the 7 kW port as perfectly efficient (7/7 = 1.0). The agent therefore
+>    parked fast cars on the slow port, charging them 7× slower — and was *worse than
+>    every baseline* at low congestion. Replaced with an achieved-power reward plus an
+>    over-provisioning penalty.
+> 2. The agent had no short-job preference, so the no-validator ablation beat it under
+>    load. Adding SJF's genuine insight (clearing short jobs decongests the queue)
+>    fixed it.
+>
+> Both were discovered by sweeping congestion levels and noticing the agent lost where
+> it should have tied. Full detail in `docs/EXPERIMENTS.md`.
+
+---
+
+
 All commands below were actually executed during this finalization pass. No result is reported as passing without having run. No live Gemini API calls were made anywhere in this report.
 
 ## Backend — pytest

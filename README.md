@@ -11,15 +11,52 @@
 >
 > Gemini live status: `GEMINI_API_KEY` is configured on the deployed backend, and a live smoke test confirmed the key authenticates correctly with Google's API — but that test hit a transient `503 Service Unavailable` from the Gemini model itself, so live structured-intent extraction succeeding end-to-end has **not yet been confirmed**. The system correctly fell back to deterministic telemetry both times, which every negotiation still uses reliably right now. See `docs/DEPLOYMENT.md` for the full test detail.
 
-An EV charging station simulator that accepts natural-language driver requests, extracts structured intent with Gemini, validates that intent against real telemetry (so the LLM can never override physical safety constraints), and dispatches EVs to charging ports with a resource-aware priority scheduler. Includes a React operations dashboard, a full FastAPI backend, a reproducible policy-comparison benchmark suite, and an experimental DQN baseline.
+An EV charging station scheduler that reads what drivers actually say, recovers the
+constraint hiding in the sentence, checks it against telemetry so nobody can lie their
+way to the front, and schedules the station around it.
+
+### The idea in one line
+
+A driver who says *"my flight leaves in 2 hours and the airport is 40 minutes away"*
+has an **80-minute deadline**. That number exists nowhere in the telemetry — not in
+state of charge, not in battery size, not in arrival time. A conventional scheduler
+(FIFO, Shortest-Job-First, Lowest-SOC-first) cannot act on it at any price, because it
+never sees it. This project recovers it from language and schedules against it.
+
+### Headline result
+
+30 paired runs per congestion level. Every policy gets the byte-identical arrival
+stream, identical physics, identical pricing, identical budget rules. Deadline
+adherence, high congestion (6.5 cars/hr):
+
+| Policy | Deadlines met | Urgent met | Avg wait | p95 wait | Served |
+|---|---|---|---|---|---|
+| FIFO | 29.6% | 17.6% | 164 min | 407 min | 96.8% |
+| Lowest-SOC-first | 39.4% | 33.2% | 148 min | 763 min | 97.3% |
+| Shortest-Job-First | 47.9% | 38.1% | 83 min | 493 min | 97.8% |
+| **EV NEXUS agent** | **61.6%** | **48.6%** | **53 min** | **226 min** | **98.5%** |
+
+**+32.0 pp over FIFO** (won 30/30 seeds) · **+13.7 pp over Shortest-Job-First**
+(29/30) · **+22.2 pp over Lowest-SOC-first** (30/30). All intervals exclude zero.
+The agent also serves *more* cars using *less* port time — this is not a fairness-vs-
+throughput trade.
+
+### Why it is not just a better-tuned scheduler
+
+The control is an ablation: the identical scheduler with the language-derived deadline
+withheld. It collapses to **51.2%** — roughly back to the conventional policies. The
+gain is the information, not the tuning. And the agent works from *imperfect*
+extraction: Gemini recovered only **8 of 12** ground-truth deadlines (66.7% recall).
 
 | | |
 |---|---|
-| **LLM** | Gemini extracts natural-language driver intent — it interprets, it never decides. |
-| **Safety** | A deterministic validator cross-checks every LLM claim against real telemetry before it can affect priority. |
-| **Scheduling** | A deterministic, resource-aware scheduler — not the LLM and not DQN — makes every production dispatch decision. |
-| **RL** | DQN was investigated experimentally and is retained as a documented, underperforming baseline — not a production component. |
-| **Fallback** | The system continues to function deterministically whenever Gemini is unavailable, rate-limited, or returns malformed output. |
+| **LLM** | Gemini extracts the deadline and urgency hiding in the sentence — it interprets, it never decides. |
+| **Safety** | A deterministic validator cross-checks every claim against telemetry. "This is an emergency" from an 85%-full battery gets downgraded, not obeyed. |
+| **Scheduling** | A deterministic deadline-feasibility matcher makes every dispatch decision. Not the LLM, not DQN. |
+| **Honesty** | Ground-truth deadlines are hand-authored and used **only for grading**. A test perturbs them and asserts the agent's behaviour does not change. |
+| **Fallback** | Gemini unavailable, rate-limited or returning malformed JSON degrades to telemetry-only scheduling, tested. |
+
+![Live scheduling comparison](screenshots/scheduler.png)
 
 ## Table of Contents
 
@@ -34,6 +71,7 @@ An EV charging station simulator that accepts natural-language driver requests, 
 - [Benchmark Methodology](#benchmark-methodology)
 - [Important Results](#important-results)
 - [Limitations](#limitations)
+- [Screenshots](#screenshots)
 - [Local Setup](#local-setup)
 - [Environment Variables](#environment-variables)
 - [API Endpoints](#api-endpoints)
@@ -126,14 +164,40 @@ This means a driver cannot talk their way into skipping the queue with a fabrica
 
 ## Scheduling Algorithms
 
-| Policy | Description |
-|---|---|
-| **FIFO** | First-In First-Out — fair but ignores urgency |
-| **PRIORITY** | Urgency-based — serves critical EVs first |
-| **SJF** | Shortest Job First — maximises throughput |
-| **TELEMETRY_ONLY** | Deterministic SOC-based urgency, no NL parsing |
-| **LLM_NEGOTIATOR** | Full pipeline: Gemini → validator → scheduler |
-| **DQN** | Deep Q-Network (**experimental baseline only** — see below) |
+Policies compared in the current (v2) benchmark. Every one shares identical physics,
+pricing and budget rules; only the decision differs.
+
+| Policy | Sees language? | Decision rule |
+|---|---|---|
+| **FIFO** | no | Arrival order. The fairness baseline. |
+| **Shortest-Job-First** | no | Least energy first. The throughput-optimal conventional baseline. |
+| **Lowest-SOC-first** | no | Emptiest battery first. The strongest telemetry-only baseline. |
+| **EV NEXUS agent** | **yes** | Deadline-feasibility matching (below). |
+| *Agent (no validator)* | yes | Ablation: trusts the urgency claim outright. |
+| *Agent (no deadlines)* | partly | Ablation: language-derived deadline withheld. **The control.** |
+
+All three conventional baselines are given the same best-fit port heuristic, so they
+are competitive rather than strawmen — the only thing that differs is queue ordering.
+
+### How the agent actually schedules
+
+Each minute, it scores every feasible (car, port) pair and greedily commits the best
+non-conflicting ones — a greedy maximum-weight matching. The score has five terms:
+
+1. **Deadline feasibility (dominant).** If finishing on this port lands before the
+   driver's deadline, the pairing gets a large bonus. Saving a deadline outranks
+   everything else.
+2. **Least slack first.** Among assignments that work, commit the tightest. A driver
+   with four hours of slack loses nothing by waiting ten minutes.
+3. **Validated urgency.** Telemetry-checked, never the raw claim.
+4. **Power matching.** Reward power actually delivered; penalise parking a 7 kW car on
+   a 150 kW port. This is what keeps throughput competitive instead of trading it away.
+5. **Aging.** Nobody starves.
+
+When Gemini returns no deadline — which happens for *"my wife is in labor"*, since
+there is no number in the sentence — the agent infers one from validated urgency
+(CRITICAL → 15 min). Without that rule those cases would be treated as having
+unlimited slack.
 
 ## DQN Experimental Findings
 
@@ -143,76 +207,149 @@ The checkpoint behind the DQN numbers reported below is `ev_dqn_model_v5.pth` (4
 
 ## Benchmark Methodology
 
-Phase 5 uses **fixture-based LLM replay**: real Gemini outputs were captured once per canonical driver-message scenario using `generate_fixtures.py` (with exponential-backoff retry), then replayed deterministically across a 30-run × 3-scenario × 6-policy ablation. This is the intentional experimental design, not a degraded fallback — it removes API quota, latency, and nondeterminism from the throughput benchmark while still exercising real Gemini outputs, and makes the experiment reproducible without network access.
+The benchmark grades **deadline adherence**: did the car get the energy it needed
+before the driver had to leave? That is the question language unlocks and telemetry
+cannot answer.
 
-**`llm_fixtures.json` currently contains 20 canonical scenario fixtures, all labelled `"source": "gemini_live"`** — captured from real Gemini Flash responses. (An earlier version of this file had 5 of the 20 as hand-authored `synthetic_manual` placeholders, from a period when the configured API key was an OAuth token rather than a Gemini API key; all 20 have since been backfilled with live Gemini output.) Full methodology, reproduction steps, and what has vs. hasn't been re-verified in the current codebase are in **[docs/EXPERIMENTS.md](docs/EXPERIMENTS.md)**.
+**Ground truth is hand-authored.** For each of the 20 canonical driver messages,
+`scenario_library.py` records the deadline a careful human reader would infer from the
+sentence, with the reasoning written down next to it. These labels are the answer key:
 
-**Important scope note:** the numbers below are historical results from a specific run of `experiment_comparison.py` (`phase5_results.json`, generated 2026-09-23) — not a live measurement re-run for this README, and not the output of live per-request Gemini calls during a user's browsing session. The Benchmarks page in the UI itself labels this data as fixture-based and historical, not live production telemetry.
+- they are authored **independently of what Gemini extracted**, so extraction quality
+  is itself measurable rather than assumed, and
+- they are used **only for grading**. A test
+  (`test_agent_beliefs_are_causally_independent_of_ground_truth`) perturbs every
+  ground-truth deadline by +997 minutes and asserts the agent's decisions are byte-
+  identical. If the answer key ever leaks into the decision path, that test fails.
+
+**The agent works from imperfect inputs.** Gemini recovered 8 of 12 ground-truth
+deadlines (66.7% recall), missing the ones with no number in the sentence —
+*"leave immediately"*, *"ASAP"*, *"right now"*, *"8 hours"*. Urgency agreement was
+100%. A further test asserts extraction is *not* perfect, to guard against someone
+silently substituting an oracle.
+
+**Pairing.** One arrival stream is generated per seed and replayed verbatim to every
+policy (common random numbers), so each seed is a genuine paired observation.
+Confidence intervals are paired percentile bootstrap, 10 000 resamples.
+
+Reproduce with `python benchmark_v2.py` — no API key, no network (it replays the
+captured Gemini outputs in `llm_fixtures.json`). Full methodology:
+**[docs/EXPERIMENTS.md](docs/EXPERIMENTS.md)**.
 
 ## Important Results
 
-### Phase 5 Results (30 runs × 3 scenarios × 6 policies, historical — see scope note above)
+### Deadline adherence, by congestion (30 paired seeds each)
 
-#### LOW congestion (2.5 EVs/hr)
+| | LOW (3/hr) | MEDIUM (5/hr) | HIGH (6.5/hr) |
+|---|---|---|---|
+| FIFO | 74.3% | 51.4% | 29.6% |
+| Lowest-SOC-first | 74.8% | 56.9% | 39.4% |
+| Shortest-Job-First | 74.5% | 59.7% | 47.9% |
+| **EV NEXUS agent** | **76.5%** | **65.7%** | **61.6%** |
+| *ablation: no deadlines* | *75.7%* | *61.4%* | *51.2%* |
 
-| Policy | Avg Wait | Crit Wait | Satisfaction | EVs Served | Revenue |
-|---|---|---|---|---|---|
-| **LLM_NEGOTIATOR** | **1.72h** | 3.68h | **0.612** | 18.1 | $1,033 |
-| SJF | 1.58h | 5.47h | 0.589 | 24.4 | $1,641 |
-| TELEMETRY_ONLY | 2.21h | 3.49h | 0.545 | 18.3 | $1,026 |
-| PRIORITY | 3.68h | 5.29h | 0.453 | 17.1 | $1,598 |
-| FIFO | 4.21h | 6.74h | 0.382 | 17.2 | $1,472 |
-| DQN | 4.34h | 4.79h | 0.134 | 12.7 | $910 |
+Paired improvement over the **best** conventional baseline at each level:
+**+1.8 pp** (LOW) → **+5.9 pp** (MEDIUM) → **+13.7 pp** (HIGH). Every interval
+excludes zero.
 
-#### MEDIUM congestion (5.0 EVs/hr)
+The gap widens with congestion, which is the intuitive result: when the station has
+spare capacity everyone is served promptly and scheduling barely matters. Knowing who
+is actually in a hurry only pays once there is contention. At LOW load the agent's
+advantage is small — reported rather than hidden.
 
-| Policy | Avg Wait | Crit Wait | Satisfaction | EVs Served | Revenue |
-|---|---|---|---|---|---|
-| SJF | 1.62h | 7.84h | 0.590 | 34.2 | $3,484 |
-| **LLM_NEGOTIATOR** | **2.40h** | **4.45h** | **0.558** | 20.3 | $1,359 |
-| TELEMETRY_ONLY | 3.34h | 4.42h | 0.422 | 19.9 | $1,323 |
-| PRIORITY | 5.32h | 7.90h | 0.350 | 18.5 | $3,190 |
-| FIFO | 5.82h | 9.15h | 0.312 | 18.3 | $2,651 |
-| DQN | 4.45h | 4.55h | 0.095 | 15.4 | $1,199 |
+### It does not buy deadlines with throughput
 
-#### HIGH congestion (8.5 EVs/hr)
+At HIGH congestion the agent serves **98.5%** of arrivals (vs 96.8–97.8%) while using
+**76.0%** of available port time (vs 82.4–83.7%). More cars served, less port time
+consumed, shorter waits, better deadline adherence — simultaneously. The power-matching
+and short-job terms are what prevent the usual fairness-for-throughput trade.
 
-| Policy | Avg Wait | Crit Wait | Satisfaction | EVs Served | Revenue |
-|---|---|---|---|---|---|
-| SJF | 1.59h | 9.37h | 0.601 | 41.0 | $6,476 |
-| **LLM_NEGOTIATOR** | **2.84h** | **3.81h** | **0.507** | 21.8 | $1,550 |
-| PRIORITY | 5.82h | 9.61h | 0.348 | 16.5 | $5,031 |
-| TELEMETRY_ONLY | 3.68h | 3.85h | 0.313 | 23.0 | $1,621 |
-| FIFO | 6.84h | 10.41h | 0.310 | 16.9 | $3,978 |
-| DQN | 3.66h | 4.03h | 0.113 | 15.3 | $1,264 |
+### What the validator is actually worth
 
-**LLM_NEGOTIATOR consistently outperforms TELEMETRY_ONLY on driver satisfaction (+11% LOW, +34% MEDIUM, +62% HIGH) and avg wait time**, by using natural-language deadline and reason context to prioritise more accurately than SOC alone. The satisfaction improvement is larger under higher congestion — the NL context matters most when queuing pressure forces hard trade-offs between EVs.
+Honest answer: **nothing when nobody games the system**, and that is correct behaviour
+for an integrity mechanism. Its value appears only under adversarial pressure:
 
-### Known Trade-off: SJF Throughput vs Fairness
+| Drivers faking urgency | With validator | Without | Paired difference |
+|---|---|---|---|
+| 0% | 58.0% | 57.1% | +0.9 pp (not significant) |
+| 20% | 57.4% | 54.5% | +2.9 pp |
+| 50% | 56.2% | 49.9% | **+6.3 pp** |
 
-SJF achieves the highest throughput and revenue under all congestion levels, but at a significant cost to **critical EV wait times**: 76% worse (MEDIUM) to 149% worse (HIGH) than LLM_NEGOTIATOR. SJF maximises the number of EVs served (more shorter jobs → more completions) but starves high-urgency, high-energy-demand EVs (medical emergencies, dead-battery panics) that take longer to charge. Use PRIORITY or LLM_NEGOTIATOR when driver experience and critical-EV fairness matter; use SJF only in throughput/revenue-maximising settings where all EVs are roughly equivalent.
+So the claim is *not* "validation improves throughput" — measured, it does not. The
+claim is that it stops a driver from talking their way to the front of the queue, and
+that this matters more the more people try it.
 
-These numbers were re-verified against the current `phase5_results.json` in this repository via `scripts/read_results.py` during the most recent finalization pass — they were not silently altered.
+### Superseded: the earlier Phase 5 benchmark
+
+`phase5_results.json` is retained for provenance but its comparison was **not sound**,
+and its numbers are deliberately not restated here. Three defects:
+
+1. **Budget parity.** The budget constraint was enforced only for the agent policies;
+   FIFO/SJF/PRIORITY ignored it entirely, so the agent was the only policy that ever
+   turned a customer away.
+2. **Broken pairing.** Runs were seeded, but the agent policies then consumed extra
+   random draws, so arrival streams silently diverged between policies.
+3. **Wrong metric.** It never measured deadline adherence — the one thing language
+   provides — so the agent's actual advantage was invisible and the comparison rested
+   on a satisfaction score averaged over completed cars only, which flatters a policy
+   that serves few cars quickly.
+
+These were found by auditing the old harness, are documented in
+[docs/EXPERIMENTS.md](docs/EXPERIMENTS.md), and are the reason the v2 benchmark exists.
 
 ## Limitations
 
-- **Gemini live calls are not verified as part of this repository's automated testing.** All backend tests and API smoke tests use `force_fallback=True` or cached fixtures, deliberately, to avoid unpredictable API cost/availability during development and CI. The deterministic fallback path is fully tested; the live Gemini call path is exercised only manually (`test_negotiator.py`, `acceptance_test.py`) and its current live status is **unverified** in this audit pass. Do not assume Gemini is always available — the system is designed to degrade gracefully when it isn't.
+- **Gemini live calls are not verified as part of this repository's automated testing.** All backend tests and API smoke tests use `force_fallback=True` or cached fixtures, deliberately, to avoid unpredictable API cost/availability during development and CI. The deterministic fallback path is fully tested; the live Gemini call path is exercised only manually (`test_negotiator.py`, `acceptance_test.py`). Do not assume Gemini is always available — the system is designed to degrade gracefully when it isn't.
+- **The benchmark replays captured Gemini output rather than calling the API per car.** This is deliberate: a 30-seed × 3-congestion × 6-policy sweep would be thousands of live calls, and API latency/quota variance would contaminate a scheduling comparison. The replayed outputs are real captured responses (`llm_fixtures.json`), including their mistakes.
 - **`app.py` uses per-session, in-process state** (keyed by `session_id`), sufficient for a local demo but not production: state is lost on restart and not shared across replicas, and there is no session TTL/cleanup.
 - **Fixed bug (this pass):** the target charge level was previously a hardcoded 80 kWh (not 80%), so any vehicle with a battery smaller than 80 kWh would show an SOC reading above 100% while charging. Fixed to be 80% of that vehicle's own capacity in both the interactive `/api/negotiate` path and the simulator's random-EV generator. See `docs/TEST_REPORT.md`.
 - **Fixed bug (this pass):** an over-budget request was previously silently dropped by the scheduler but reported to the frontend as `"WAITING"` (indistinguishable from a genuinely queued request). The API now reports `"REJECTED_BUDGET"` and the UI shows an explicit rejection state. See `docs/TEST_REPORT.md`.
 - No persistent time-series analytics — the Analytics page is explicit about this in its own UI copy.
-- No browser/E2E test suite exists; this has not been added in this pass (no browser automation tooling was available in the environment used for this work — see `docs/TEST_REPORT.md`).
 - CORS defaults to `http://localhost:5173` for local development; **must** be set explicitly via `ALLOWED_ORIGINS` for any deployment.
-- Frontend bundle is a single ~687 KB chunk (Vite warns above 500 KB) — not code-split. Cosmetic, not a functional issue.
+- Frontend bundle is a single ~710 KB chunk (Vite warns above 500 KB) — not code-split. Cosmetic, not a functional issue.
+- **The simulation is a simulation.** Arrival times, battery sizes and accepted charge rates are drawn from plausible distributions, not from real station data. The physics (power limits, taper above 80% SOC) are simplified. The *comparison* between policies is sound because every policy faces the identical world; the absolute percentages are not a claim about any real forecourt.
+- **The 20 driver messages are a fixed set.** Results depend on that scenario mix. A station whose customers never state deadlines would see no benefit from this approach — which is exactly what the LOW-congestion and no-deadline-ablation rows show.
+- **Ground-truth deadline labels are a judgement call.** "Leave immediately" is encoded as 10 minutes; a different reader might say 5 or 15. The reasoning for every label is recorded in `scenario_library.py` so the choices can be argued with.
+
+## Screenshots
+
+**Live scheduling comparison** — clear input (the actual driver requests), visible
+scheduling (both policies on one time axis), explicit output (paired deltas):
+
+![Scheduler](screenshots/scheduler.png)
+
+**The schedule itself** — agent above, baseline below, same arrivals, same axis. Green
+met the driver's deadline, red missed it, the yellow tick is the deadline, the thin
+grey bar is time spent waiting in the queue:
+
+![Schedule Gantt](screenshots/schedule-gantt.png)
+
+**Why a car was scheduled where it was** — language → telemetry check → outcome, with
+the same car's fate under the baseline for contrast:
+
+![Decision detail](screenshots/decision-detail.png)
+
+**Benchmark evidence** — paired confidence intervals, per-seed win counts, and the
+agent's own input quality stated up front:
+
+![Benchmarks](screenshots/benchmarks.png)
 
 ## Local Setup
 
 ### Backend Setup
 
 ```bash
-pip install fastapi uvicorn "google-genai" torch pytest
-cp .env.example .env        # then edit .env and set GEMINI_API_KEY
+pip install -r requirements.txt
+cp .env.example .env        # optional — without a key it runs on telemetry fallback
 uvicorn app:app --reload
+```
+
+Reproduce the benchmark (no API key or network needed):
+
+```bash
+python benchmark_v2.py          # 30 paired seeds x 3 congestion levels
+python scenario_library.py      # extraction quality vs ground truth
+python schedule_engine.py       # one stream through every policy
 ```
 
 ### Frontend Setup
@@ -246,20 +383,49 @@ Never commit a real `.env` file — `.env.example` files (root and `frontend/`) 
 | `POST` | `/api/step` | Advance the simulation clock without adding new EVs. |
 | `POST` | `/api/reset` | Reset a session's simulation to a clean state. |
 | `POST` | `/api/new-session` | Allocate a new isolated `session_id`. |
-| `GET` | `/api/benchmarks` | Serves an explicit allowlist of two historical benchmark JSON files (`phase4c5_results.json`, `phase5_results.json`). |
+| `GET` | `/api/scenarios` | The 20 canonical driver messages, what Gemini extracted from each, and extraction quality vs ground truth. |
+| `POST` | `/api/compare` | **Schedules one identical set of arrivals under every policy** and returns full timelines plus metrics. Backs the live comparison page. Optional `repeats` averages over N arrival patterns. |
+| `GET` | `/api/benchmarks` | Serves an allowlist of result files, including `benchmark_v2_results.json`. |
 
 ## Testing
 
 ```bash
-# Backend
-pytest tests/ -v
+# Backend: engine, fairness invariants, validator, regression guards
+pytest tests/ -v                       # 32 tests
 
 # Frontend type check + production build
-cd frontend
-npm run build
+cd frontend && npm run build
+
+# Browser end-to-end (needs a backend running; see note below)
+cd frontend && npm run test:e2e        # 9 tests
 ```
 
-There is no automated frontend test suite (no `*.test.tsx` files) and no browser/E2E suite in this repository. See **[docs/TEST_REPORT.md](docs/TEST_REPORT.md)** for the exact commands run, their results, and what remains explicitly unverified.
+**32 Python tests.** Beyond functionality these lock in the *fairness* invariants, so
+the class of bug that invalidated the v1 benchmark cannot return silently:
+
+- the budget rule is identical across policies,
+- pricing has no urgency component (the agent cannot inflate revenue by knowing urgency),
+- conventional policies hold no deadline belief at all,
+- the arrival stream is not mutated or regenerated per policy,
+- ground truth is causally independent of agent decisions,
+- extraction is imperfect (guards against swapping in an oracle),
+- no port is ever double-booked,
+- and the headline claims themselves are regression tests.
+
+**9 Playwright tests** run against a real browser and the real production bundle —
+including a check that no `AIza…` credential appears in any served script.
+
+E2E needs the backend reachable and its origin allowed:
+
+```bash
+# terminal 1
+$env:ALLOWED_ORIGINS="http://localhost:4173"; uvicorn app:app --port 8000
+# terminal 2
+cd frontend
+$env:VITE_API_BASE="http://127.0.0.1:8000/api"; npm run build; npm run test:e2e
+```
+
+See **[docs/TEST_REPORT.md](docs/TEST_REPORT.md)** for results and what remains unverified.
 
 ## Deployment
 
@@ -276,6 +442,10 @@ Production CORS is locked to the exact frontend origin (`ALLOWED_ORIGINS=https:/
 ## Project Structure
 
 ```
+├── scenario_library.py             # 20 driver messages + hand-authored ground truth + arrival streams
+├── schedule_engine.py              # v2 deterministic engine: all policies, identical physics, Gantt timelines
+├── benchmark_v2.py                 # Paired bootstrap benchmark -> benchmark_v2_results.json
+├── benchmark_v2_results.json       # Current benchmark output (30 seeds x 3 congestion levels)
 ├── app.py                          # FastAPI backend (per-session state, health check, hardened CORS)
 ├── requirements.txt                # Pinned backend dependencies (for deployment)
 ├── render.yaml                     # Render Blueprint — one-click backend deployment config
@@ -299,7 +469,10 @@ Production CORS is locked to the exact frontend origin (`ALLOWED_ORIGINS=https:/
 ├── acceptance_test.py, test_negotiator.py  # Manual acceptance/demo scripts — some paths make live Gemini calls; not part of pytest (see docs/TEST_REPORT.md)
 ├── scripts/                        # Ad hoc diagnostic scripts (not automated) — see scripts/README.md
 ├── tests/
-│   └── test_core.py                # pytest suite (10 tests)
+│   ├── test_core.py                # validator + legacy simulation (10 tests)
+│   └── test_schedule_engine.py     # v2 engine, fairness invariants, regression guards (22 tests)
+├── frontend/e2e/                   # Playwright browser tests (9 tests)
+├── screenshots/                    # UI captures used in this README
 ├── archive/                        # Retired result files (avg_satisfaction=0.0 bug) — kept for provenance, not used
 ├── docs/                           # Architecture, experiments, test report, deployment, provenance, resume docs
 └── frontend/                       # React + TypeScript UI (Overview, Charging, Analytics, Benchmarks, Architecture)

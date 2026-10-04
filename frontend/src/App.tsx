@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom';
-import { Zap, LayoutGrid, BatteryCharging, BarChart3, Activity, GitBranch } from 'lucide-react';
+import {
+  Zap, LayoutGrid, BatteryCharging, BarChart3, Activity, GitBranch, CalendarClock,
+} from 'lucide-react';
 
 import { api } from './api';
+import SchedulerPage from './pages/SchedulerPage';
 import OverviewPage from './pages/OverviewPage';
 import ChargingPage from './pages/ChargingPage';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -10,7 +13,8 @@ import BenchmarksPage from './pages/BenchmarksPage';
 import ArchitecturePage from './pages/ArchitecturePage';
 
 const NAV = [
-  { to: '/overview',      Icon: LayoutGrid,      label: 'Overview'      },
+  { to: '/scheduler',     Icon: CalendarClock,   label: 'Scheduler'     },
+  { to: '/overview',      Icon: LayoutGrid,      label: 'Negotiate'     },
   { to: '/charging',      Icon: BatteryCharging, label: 'Charging'      },
   { to: '/analytics',     Icon: BarChart3,        label: 'Analytics'     },
   { to: '/benchmarks',    Icon: Activity,         label: 'Benchmarks'    },
@@ -110,13 +114,14 @@ export default function App() {
           {/* Page content */}
           <main style={{ flex: 1, overflow: 'auto', background: '#020617' }}>
             <Routes>
-              <Route path="/"             element={<Navigate to="/overview" replace />} />
+              <Route path="/"             element={<Navigate to="/scheduler" replace />} />
+              <Route path="/scheduler"    element={<SchedulerPage />} />
               <Route path="/overview"     element={<OverviewPage />} />
               <Route path="/charging"     element={<ChargingPage />} />
               <Route path="/analytics"    element={<AnalyticsPage />} />
               <Route path="/benchmarks"   element={<BenchmarksPage />} />
               <Route path="/architecture" element={<ArchitecturePage />} />
-              <Route path="*"             element={<Navigate to="/overview" replace />} />
+              <Route path="*"             element={<Navigate to="/scheduler" replace />} />
             </Routes>
           </main>
         </div>
@@ -141,7 +146,7 @@ function TopBar({ online }: { online: boolean | null }) {
         </span>
       </div>
       <div style={{ fontSize: '12px', color: '#475569' }}>
-        Station Alpha &nbsp;·&nbsp; 3 Ports
+        Deadline-aware EV charging scheduler
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: online ? '#4ade80' : '#f87171', boxShadow: online ? '0 0 5px #4ade80' : '0 0 5px #f87171' }} />

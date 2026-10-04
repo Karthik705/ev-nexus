@@ -1,5 +1,46 @@
 # EV NEXUS — Architecture
 
+> **Two engines live in this repository, deliberately.**
+>
+> | | `simple_ev_simulation.py` (v1) | `schedule_engine.py` (v2) |
+> |---|---|---|
+> | Backs | `/api/negotiate`, Overview & Charging pages | `/api/compare`, Scheduler & Benchmarks pages, `benchmark_v2.py` |
+> | Purpose | Interactive single-request demo | Policy comparison and the benchmark |
+> | Status | Working, kept for the live negotiation demo | Current evaluation engine |
+>
+> v2 was written rather than retrofitted because the v1 engine had fairness defects
+> baked into its dispatch loop (budget enforced only for agent policies, arrival
+> streams diverging between policies). Rewriting those in place would have silently
+> changed the historical results; keeping them separate preserves provenance and lets
+> the old numbers stay auditable. The v2 engine backs **both** the benchmark and the
+> live comparison page, so the website demonstrates the identical computation the
+> benchmark reports.
+>
+> ## v2 data flow
+>
+> ```
+> scenario_library.py          20 driver messages + hand-authored ground truth
+>         |                    + deterministic arrival-stream generator
+>         v
+> llm_fixtures.json            captured Gemini extractions (the agent's only language input)
+>         |
+>         v
+> schedule_engine.py           one stream -> every policy, identical physics
+>   |-- _apply_agent_beliefs()   language + telemetry -> validated urgency, deadline
+>   |-- _dispatch_conventional() FIFO / SJF / lowest-SOC, best-fit port
+>   |-- _dispatch_agent()        greedy max-weight (car, port) matching
+>   '-- _summarise()             metrics + Gantt timeline
+>         |
+>         +--> benchmark_v2.py -> benchmark_v2_results.json  (paired bootstrap)
+>         '--> app.py /api/compare -> Scheduler page         (live, same code)
+> ```
+>
+> Ground truth flows only into `_summarise()` (grading), never into
+> `_apply_agent_beliefs()` (deciding). A test enforces this causally.
+
+---
+
+
 This document traces the actual, current data flow through the system, with file paths and line references. It reflects the code as of this finalization pass, not aspirational design.
 
 ## High-Level Flow

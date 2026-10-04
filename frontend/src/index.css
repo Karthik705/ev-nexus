@@ -258,6 +258,162 @@ body {
   animation: fade-in 0.25s ease forwards;
 }
 
+/* ─── Spinner ────────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.9s linear infinite; }
+
+/* ─── Segmented control ──────────────────────────────────────── */
+.seg {
+  display: inline-flex;
+  background: #0a1222;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+.seg button {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 6px 13px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s;
+  white-space: nowrap;
+}
+.seg button:hover:not(:disabled):not(.on) { color: #94a3b8; background: #0f172a; }
+.seg button.on { background: #083344; color: #22d3ee; box-shadow: inset 0 0 0 1px #0e7490; }
+.seg button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ─── Delta card: the agent-vs-baseline headline ─────────────── */
+.delta-card {
+  background: linear-gradient(160deg, #0b1626 0%, #0f172a 100%);
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.delta-card .dc-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+}
+.delta-card .dc-delta {
+  font-size: 25px;
+  font-weight: 350;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.delta-card .dc-delta.good { color: #34d399; }
+.delta-card .dc-delta.bad  { color: #fb7185; }
+.delta-card .dc-delta.flat { color: #64748b; }
+.delta-card .dc-pair {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.delta-card .dc-agent { color: #22d3ee; font-weight: 600; }
+.delta-card .dc-base  { color: #64748b; }
+
+/* ─── Range slider ───────────────────────────────────────────── */
+.range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  background: #1e293b;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #22d3ee;
+  border: 2px solid #042f3d;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.4);
+}
+.range::-moz-range-thumb {
+  width: 13px; height: 13px; border-radius: 50%;
+  background: #22d3ee; border: 2px solid #042f3d; cursor: pointer;
+}
+
+/* ─── Field label ────────────────────────────────────────────── */
+.field-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #475569;
+  margin-bottom: 7px;
+}
+.field-label b {
+  font-size: 12px;
+  font-weight: 600;
+  color: #22d3ee;
+  letter-spacing: 0;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Request chip row ───────────────────────────────────────── */
+.req-row {
+  display: grid;
+  grid-template-columns: 58px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.req-row:hover { background: #0f172a; }
+.req-row.on { background: #0b1b2b; border-color: #0e7490; }
+.req-row .rq-id {
+  font-family: ui-monospace, monospace;
+  font-size: 10.5px;
+  color: #475569;
+}
+.req-row.on .rq-id { color: #22d3ee; }
+.req-row .rq-msg {
+  font-size: 12px;
+  color: #cbd5e1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Callout ────────────────────────────────────────────────── */
+.callout {
+  border-left: 2px solid #0e7490;
+  background: #0a1626;
+  border-radius: 0 5px 5px 0;
+  padding: 11px 14px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #94a3b8;
+}
+.callout.warn { border-left-color: #92400e; background: #1a1206; }
+
 /* ─── Scenario button ────────────────────────────────────────── */
 .scenario-btn {
   padding: 5px 12px;
