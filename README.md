@@ -2,14 +2,15 @@
 
 ### LLM-Assisted EV Charging Negotiation & Resource-Aware Scheduling
 
-**Live Demo:** [ev-nexus.pages.dev](https://ev-nexus.pages.dev)
-**Backend API:** [ev-nexus-backend.onrender.com](https://ev-nexus-backend.onrender.com) · [health check](https://ev-nexus-backend.onrender.com/api/health)
-**GitHub:** [github.com/Karthik705/ev-nexus](https://github.com/Karthik705/ev-nexus)
-**Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+[![Tests](https://github.com/Karthik705/ev-nexus/actions/workflows/tests.yml/badge.svg)](https://github.com/Karthik705/ev-nexus/actions/workflows/tests.yml)
 
-> The backend runs on Render's free tier, which spins down after 15 minutes of inactivity — the first request after a period of idleness can take 30–60 seconds to wake it up. This is a known, documented free-tier trade-off (see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)), not a bug.
->
-> Gemini live status: `GEMINI_API_KEY` is configured on the deployed backend, and a live smoke test confirmed the key authenticates correctly with Google's API — but that test hit a transient `503 Service Unavailable` from the Gemini model itself, so live structured-intent extraction succeeding end-to-end has **not yet been confirmed**. The system correctly fell back to deterministic telemetry both times, which every negotiation still uses reliably right now. See `docs/DEPLOYMENT.md` for the full test detail.
+**Live Demo:** [ev-nexus.pages.dev](https://ev-nexus.pages.dev)  
+**Backend API:** [ev-nexus-backend.onrender.com](https://ev-nexus-backend.onrender.com) · [health check](https://ev-nexus-backend.onrender.com/api/health)  
+**GitHub:** [github.com/Karthik705/ev-nexus](https://github.com/Karthik705/ev-nexus)  
+**Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)  
+**Project report:** [docs/PROJECT_REPORT.md](docs/PROJECT_REPORT.md) · [PDF](docs/PROJECT_REPORT.pdf)
+
+> The backend runs on Render's free tier, which sleeps after 15 minutes without traffic: the first request after a quiet period can take 30–60 seconds. If Gemini is unavailable, every request still works on deterministic telemetry-only scheduling.
 
 An EV charging station scheduler that reads what drivers actually say, recovers the
 constraint hiding in the sentence, checks it against telemetry so nobody can lie their
@@ -302,11 +303,10 @@ These were found by auditing the old harness, are documented in
 - **Gemini live calls are not verified as part of this repository's automated testing.** All backend tests and API smoke tests use `force_fallback=True` or cached fixtures, deliberately, to avoid unpredictable API cost/availability during development and CI. The deterministic fallback path is fully tested; the live Gemini call path has only ever been exercised by hand. Do not assume Gemini is always available — the system is designed to degrade gracefully when it isn't.
 - **The benchmark replays captured Gemini output rather than calling the API per car.** This is deliberate: a 30-seed × 3-congestion × 6-policy sweep would be thousands of live calls, and API latency/quota variance would contaminate a scheduling comparison. The replayed outputs are real captured responses (`llm_fixtures.json`), including their mistakes.
 - **`app.py` uses per-session, in-process state** (keyed by `session_id`), sufficient for a local demo but not production: state is lost on restart and not shared across replicas, and there is no session TTL/cleanup.
-- **Fixed bug (this pass):** the target charge level was previously a hardcoded 80 kWh (not 80%), so any vehicle with a battery smaller than 80 kWh would show an SOC reading above 100% while charging. Fixed to be 80% of that vehicle's own capacity in both the interactive `/api/negotiate` path and the simulator's random-EV generator. See `docs/TEST_REPORT.md`.
-- **Fixed bug (this pass):** an over-budget request was previously silently dropped by the scheduler but reported to the frontend as `"WAITING"` (indistinguishable from a genuinely queued request). The API now reports `"REJECTED_BUDGET"` and the UI shows an explicit rejection state. See `docs/TEST_REPORT.md`.
+- **Fixed bug:** the target charge level was previously a hardcoded 80 kWh (not 80%), so any vehicle with a battery smaller than 80 kWh would show an SOC reading above 100% while charging. Fixed to be 80% of that vehicle's own capacity in both the interactive `/api/negotiate` path and the simulator's random-EV generator. See `docs/TEST_REPORT.md`.
+- **Fixed bug:** an over-budget request was previously silently dropped by the scheduler but reported to the frontend as `"WAITING"` (indistinguishable from a genuinely queued request). The API now reports `"REJECTED_BUDGET"` and the UI shows an explicit rejection state. See `docs/TEST_REPORT.md`.
 - No persistent time-series analytics — the Analytics page is explicit about this in its own UI copy.
 - CORS defaults to `http://localhost:5173` for local development; **must** be set explicitly via `ALLOWED_ORIGINS` for any deployment.
-- Frontend bundle is a single ~710 KB chunk (Vite warns above 500 KB) — not code-split. Cosmetic, not a functional issue.
 - **The simulation is a simulation.** Arrival times, battery sizes and accepted charge rates are drawn from plausible distributions, not from real station data. The physics (power limits, taper above 80% SOC) are simplified. The *comparison* between policies is sound because every policy faces the identical world; the absolute percentages are not a claim about any real forecourt.
 - **The 20 driver messages are a fixed set.** Results depend on that scenario mix. A station whose customers never state deadlines would see no benefit from this approach — which is exactly what the LOW-congestion and no-deadline-ablation rows show.
 - **Ground-truth deadline labels are a judgement call.** "Leave immediately" is encoded as 10 minutes; a different reader might say 5 or 15. The reasoning for every label is recorded in `scenario_library.py` so the choices can be argued with.
@@ -391,7 +391,7 @@ Never commit a real `.env` file — `.env.example` files (root and `frontend/`) 
 
 ```bash
 # Backend: engine, fairness invariants, validator, regression guards
-pytest tests/ -v                       # 32 tests
+pytest tests/ -v                       # 40 tests
 
 # Frontend type check + production build
 cd frontend && npm run build
@@ -400,7 +400,7 @@ cd frontend && npm run build
 cd frontend && npm run test:e2e        # 9 tests
 ```
 
-**32 Python tests.** Beyond functionality these lock in the *fairness* invariants, so
+**40 Python tests.** Beyond functionality these lock in the *fairness* invariants, so
 the class of bug that invalidated the v1 benchmark cannot return silently:
 
 - the budget rule is identical across policies,
@@ -437,7 +437,7 @@ See **[docs/TEST_REPORT.md](docs/TEST_REPORT.md)** for results and what remains 
 | Backend | Render (free tier) | [ev-nexus-backend.onrender.com](https://ev-nexus-backend.onrender.com) |
 | Health check | — | [/api/health](https://ev-nexus-backend.onrender.com/api/health) |
 
-Production CORS is locked to the exact frontend origin (`ALLOWED_ORIGINS=https://ev-nexus.pages.dev` — no wildcard). Full deployment methodology, redeploy instructions, and current known limitations (free-tier cold starts, Gemini key not yet configured on the host): **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+Production CORS is locked to the exact frontend origin (`ALLOWED_ORIGINS=https://ev-nexus.pages.dev` — no wildcard). Full deployment methodology, redeploy instructions, and current known limitations (free-tier cold starts, status of the live Gemini path): **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
 ## Project Structure
 
@@ -470,14 +470,15 @@ Production CORS is locked to the exact frontend origin (`ALLOWED_ORIGINS=https:/
 ├── frontend/e2e/                   # Playwright browser tests (9 tests)
 ├── screenshots/                    # UI captures used in this README
 ├── archive/                        # Retired result files (avg_satisfaction=0.0 bug) — kept for provenance, not used
-├── docs/                           # Architecture, experiments, test report, deployment, provenance, resume docs
+├── docs/                           # Project report (MD + PDF), architecture, experiments, test report, deployment, provenance
+│   └── history/                    # Earlier audit and status notes, kept for the audit trail
 └── frontend/                       # React + TypeScript UI (Overview, Charging, Analytics, Benchmarks, Architecture)
 ```
 
 ## Future Improvements
 
 - Persistent session store (Redis/DB) with TTL, replacing the in-process dict, for real multi-user/multi-replica deployment.
-- Browser/E2E test coverage (Playwright or similar) for the full negotiation → scheduling → charging → reset user journey.
 - Per-constraint pass/fail fields returned by `/api/negotiate` (budget, charging-rate, port compatibility) so the frontend's Safety Validation panel can show genuinely dynamic per-request checks instead of illustrative static ones for the non-urgency constraints.
-- Code-splitting the frontend bundle.
-- A verified, timestamped live-Gemini smoke test recorded in `docs/TEST_REPORT.md` once a key is confirmed valid and the user authorizes a live call.
+- Validate the result on a public charging-session dataset instead of simulated arrivals.
+- Let the driver confirm or correct the extracted deadline before scheduling, closing the gap for messages with no explicit number.
+- A recorded, timestamped end-to-end live-Gemini smoke test.

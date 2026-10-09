@@ -6,7 +6,7 @@
 > `visual_ev_simulation.py`, `phase4_results.json`, `phase4c5_results.json`,
 > `phase5_sensitivity_results.json`, the `plots/` directories) have since been removed
 > during cleanup, and the Phase 5 benchmark it analyses has been superseded. For
-> current state see `docs/CURRENT_PROJECT_STATUS.md`; for the current benchmark see
+> current state see `docs/history/CURRENT_PROJECT_STATUS.md`; for the current benchmark see
 > `docs/EXPERIMENTS.md`.
 
 Audit date: 2026-09-28. No files were modified, no git repository was initialized, no destructive or paid actions were taken. Backend tests were executed; a local backend server was started transiently on port 8123 and hit with `force_fallback:true` requests only (no live Gemini calls were made). All claims below are labeled by evidence type: **[CODE]** = read source, **[RUN]** = executed and observed output, **[DOC]** = a prior README/claim not independently verified, **[NOT TESTED]** = could not verify safely in Phase 1.

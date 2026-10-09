@@ -1,16 +1,22 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import {
   Zap, LayoutGrid, BatteryCharging, BarChart3, Activity, GitBranch, CalendarClock,
 } from 'lucide-react';
 
 import { api } from './api';
-import SchedulerPage from './pages/SchedulerPage';
-import OverviewPage from './pages/OverviewPage';
-import ChargingPage from './pages/ChargingPage';
-import AnalyticsPage from './pages/AnalyticsPage';
-import BenchmarksPage from './pages/BenchmarksPage';
-import ArchitecturePage from './pages/ArchitecturePage';
+// Route-level code splitting: each page (and the charting library it pulls in)
+// loads on first visit instead of shipping in one large bundle.
+const SchedulerPage    = lazy(() => import('./pages/SchedulerPage'));
+const OverviewPage     = lazy(() => import('./pages/OverviewPage'));
+const ChargingPage     = lazy(() => import('./pages/ChargingPage'));
+const AnalyticsPage    = lazy(() => import('./pages/AnalyticsPage'));
+const BenchmarksPage   = lazy(() => import('./pages/BenchmarksPage'));
+const ArchitecturePage = lazy(() => import('./pages/ArchitecturePage'));
+
+const PageFallback = () => (
+  <div style={{ padding: '24px', color: '#64748b', fontSize: '13px' }}>Loading…</div>
+);
 
 const NAV = [
   { to: '/scheduler',     Icon: CalendarClock,   label: 'Scheduler'     },
@@ -113,6 +119,7 @@ export default function App() {
 
           {/* Page content */}
           <main style={{ flex: 1, overflow: 'auto', background: '#020617' }}>
+            <Suspense fallback={<PageFallback />}>
             <Routes>
               <Route path="/"             element={<Navigate to="/scheduler" replace />} />
               <Route path="/scheduler"    element={<SchedulerPage />} />
@@ -123,6 +130,7 @@ export default function App() {
               <Route path="/architecture" element={<ArchitecturePage />} />
               <Route path="*"             element={<Navigate to="/scheduler" replace />} />
             </Routes>
+            </Suspense>
           </main>
         </div>
       </div>

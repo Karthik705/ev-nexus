@@ -2,9 +2,9 @@
 
 > **Historical record — do not read as current state.** A dated log from 2026-09-28,
 > kept unedited. Some files referenced here have since been removed in a later cleanup
-> pass. Current state: `docs/CURRENT_PROJECT_STATUS.md`.
+> pass. Current state: `docs/history/CURRENT_PROJECT_STATUS.md`.
 
-Date: 2026-09-28. Scope: resolve confirmed P0/P1 hygiene items from `PROJECT_STATUS_AUDIT.md` only. No git repository was initialized, no commits made, no deployment performed, no live Gemini/API calls made, no secret values inspected or printed.
+Date: 2026-09-28. Scope: resolve confirmed P0/P1 hygiene items from `docs/history/PROJECT_STATUS_AUDIT.md` only. No git repository was initialized, no commits made, no deployment performed, no live Gemini/API calls made, no secret values inspected or printed.
 
 ---
 
@@ -15,7 +15,7 @@ Checks performed (no secret values read or printed):
 - `.env` exists at repo root: **yes**.
 - `.env` covered by `.gitignore`: **yes** (`.gitignore:1`).
 - Secret scan for `AIza[A-Za-z0-9_-]{20,}`-style key patterns across the whole repo (excluding `node_modules`/`.git`), including `frontend/src` and `frontend/dist`: **zero matches** — no Gemini key material found in any source or build output.
-- Files containing the literal string `GEMINI_API_KEY=` (name only, not value): `.env`, `.env.example`, `acceptance_test.py`, `app.py`, `generate_fixtures.py`, `llm_negotiator.py`, `README.md`, `PROJECT_STATUS_AUDIT.md` — all of these reference the *variable name* only (code reading `os.environ`, or documentation), not an actual key value.
+- Files containing the literal string `GEMINI_API_KEY=` (name only, not value): `.env`, `.env.example`, `acceptance_test.py`, `app.py`, `generate_fixtures.py`, `llm_negotiator.py`, `README.md`, `docs/history/PROJECT_STATUS_AUDIT.md` — all of these reference the *variable name* only (code reading `os.environ`, or documentation), not an actual key value.
 - `.env.example` content confirmed to be a safe placeholder only: `GEMINI_API_KEY=YOUR_API_KEY_HERE`.
 - **Bug found and fixed:** `.gitignore` incorrectly listed `.env.example` itself (`.gitignore:5` in the pre-cleanup version), which would have prevented the safe placeholder template from ever being committed to version control — the opposite of intended behavior. Removed that line; `.env` (the real secret file) remains ignored, `.env.example` (the safe template) no longer is.
 - `.env` was **not** deleted — left in place for local development as instructed.
@@ -48,7 +48,7 @@ This contradicted the file's actual current state (verified in Phase 1: all 20 e
 
 > `llm_fixtures.json               # 20 fixtures, all "source": "gemini_live"`
 
-No experimental results, numbers, or claims were invented — this is a wording-only fix to match evidence already gathered in Phase 1 (`PROJECT_STATUS_AUDIT.md`, Section D).
+No experimental results, numbers, or claims were invented — this is a wording-only fix to match evidence already gathered in Phase 1 (`docs/history/PROJECT_STATUS_AUDIT.md`, Section D).
 
 ---
 
@@ -68,7 +68,7 @@ Test server process was located via `netstat` and terminated by PID after verifi
 
 ---
 
-## Still Unresolved (carried forward from `PROJECT_STATUS_AUDIT.md`)
+## Still Unresolved (carried forward from `docs/history/PROJECT_STATUS_AUDIT.md`)
 
 - **P0** — Whether the previously-exposed Gemini key was ever revoked cannot be verified from the repo; this requires direct action in the Google AI Studio console, outside the scope of any code-level cleanup.
 - **P0** — No git repository exists yet. `git init` + first commit was deliberately not performed in this pass (out of scope; also `.env` handling and `.pth` checkpoint tracking policy should be decided before that commit).

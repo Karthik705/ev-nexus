@@ -1,7 +1,7 @@
 # EV NEXUS — Current Project Status
 
 Current as of the v2 scheduling-engine pass. Earlier history:
-`PROJECT_STATUS_AUDIT.md`, `docs/PHASE_1_5_CLEANUP.md`, `docs/DQN_PROVENANCE.md`.
+`docs/history/PROJECT_STATUS_AUDIT.md`, `docs/history/PHASE_1_5_CLEANUP.md`, `docs/DQN_PROVENANCE.md`.
 
 ## Live URLs
 

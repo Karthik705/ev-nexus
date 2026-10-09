@@ -1,100 +1,78 @@
-# EV NEXUS — Deployment Guide
+# EV NEXUS — Deployment
 
-**Status: deployed and live, ₹0 total cost.**
+Deployed on free tiers at no cost.
 
 | Service | Provider | URL |
 |---|---|---|
-| GitHub | github.com | [github.com/Karthik705/ev-nexus](https://github.com/Karthik705/ev-nexus) (public) |
-| Frontend | Cloudflare Pages (free tier) | [ev-nexus.pages.dev](https://ev-nexus.pages.dev) |
-| Backend | Render (free tier) | [ev-nexus-backend.onrender.com](https://ev-nexus-backend.onrender.com) |
-| Health check | — | https://ev-nexus-backend.onrender.com/api/health → `{"status":"ok"}` |
+| Frontend (static Vite build) | Cloudflare Pages | [ev-nexus.pages.dev](https://ev-nexus.pages.dev) |
+| Backend (FastAPI) | Render | [ev-nexus-backend.onrender.com](https://ev-nexus-backend.onrender.com) |
+| Health check | | [/api/health](https://ev-nexus-backend.onrender.com/api/health) → `{"status":"ok"}` |
 
-No credit card was entered anywhere. No paid plan was selected. Both providers' free tiers were re-verified as genuinely free (no card required) via live research before use — see "Chosen Providers" below.
+> Render's free tier sleeps after 15 minutes without traffic. The first request after a
+> quiet period can take 30–60 seconds while the backend wakes up; after that it is fast.
 
-## How This Was Deployed
+## Why these providers
 
-Both `gh` (GitHub CLI) and Render's official CLI were installed via `winget` (Windows Package Manager — free, official sources: `GitHub.cli`, `Render.CLI`). Cloudflare's `wrangler` CLI was already available via `npx`. All three support browser-based one-time device-code authentication: running `gh auth login`, `wrangler login`, and `render login` each opened a real browser window on this machine for the account owner to click "Authorize" — no password, token, or secret was ever typed into a terminal or chat. Cloudflare and Render both completed near-instantly since the account owner was already signed into those providers in their browser; GitHub's own push turned out to already be configured from a prior manual push, so no `gh` authentication was actually needed to publish code.
-
-Once authenticated:
-- **Cloudflare Pages**: `npx wrangler pages project create ev-nexus --force` (the `--force` flag was required once, to use classic Pages instead of an unwanted auto-delegation to "Pages via Workers," which would have scaffolded unrelated Workers config files into the frontend — those were reverted before proceeding), then `npx wrangler pages deploy dist --project-name ev-nexus`.
-- **Render**: `render services create --name ev-nexus-backend --type web_service --repo https://github.com/Karthik705/ev-nexus --runtime python --build-command "pip install -r requirements.txt" --start-command "uvicorn app:app --host 0.0.0.0 --port $PORT" --health-check-path /api/health --plan free --env-var "ALLOWED_ORIGINS=https://ev-nexus.pages.dev"`.
-
-## A Real Gotcha Worth Recording (for future redeploys)
-
-Running Render CLI commands from **Git Bash on Windows** silently mangles any argument that looks like a Unix path — `/api/health` was rewritten to `C:/Program Files/Git/api/health` before Render ever saw it, causing the health check to fail with 404s even though every other setting was correct. Fixed by prefixing the command with `MSYS_NO_PATHCONV=1`. A second subtlety: updating the setting via `render services update` changed the stored config immediately (confirmed via `render services -o json`), but the **already-running instance's internal health-check monitor kept using the old, wrong path** until the service was explicitly restarted with `render restart <service-id>` — redeploying alone was not enough to refresh it. If you ever see health checks failing on Render despite the dashboard showing the correct path, try a restart before assuming something else is wrong.
-
-## Chosen Providers, and Why
-
-Researched live (September 2026), not assumed from older documentation — providers' free tiers are known to shift (multiple sources noted tier changes between Feb–June 2026 alone).
-
-| Layer | Provider | Why |
+| Layer | Provider | Reason |
 |---|---|---|
-| Backend (FastAPI) | **[Render](https://render.com)** | Free web-service tier, no credit card, native Python auto-detection, GitHub auto-deploy on push. Trade-off (accepted, documented): free instances spin down after 15 min idle, ~30-60s cold start on the next request — Render's own docs say not to use this tier for production traffic, which is fine for a portfolio demo. |
-| Frontend (static Vite build) | **[Cloudflare Pages](https://pages.cloudflare.com)** | Unlimited bandwidth and requests on the free tier, no credit card, no known overage-billing exposure — chosen over Vercel specifically because Vercel's Hobby tier has documented surprise-overage-billing risk, which conflicts with the "no unexpected charges" requirement for this project. |
+| Backend | Render | Free web service without a card, native Python support, auto-deploy from GitHub. Trade-off: cold starts on the free tier. |
+| Frontend | Cloudflare Pages | Unlimited bandwidth on the free tier and no overage billing. |
 
-## What's In the Repository to Support This
+## Configuration
 
-- **`requirements.txt`** — pinned backend dependencies (`fastapi`, `uvicorn`, `pydantic`, `google-genai`, `numpy`, `torch`, `gymnasium`), verified against the exact versions used in development.
-- **`render.yaml`** — a Render Blueprint describing the same service declaratively (build/start commands, health-check path, `GEMINI_API_KEY`/`ALLOWED_ORIGINS` marked `sync: false` so Render prompts for them in its dashboard rather than expecting them in the repo). The actual deployed service was created via direct CLI flags rather than a Blueprint sync (see above), but `render.yaml` remains available and accurate if you ever want to redeploy via Render's "New Blueprint" dashboard flow instead.
-- **Configurable frontend backend URL** (`frontend/src/api.ts`, `VITE_API_BASE`) — the deployed build was produced with `VITE_API_BASE=https://ev-nexus-backend.onrender.com/api`; confirmed baked into the shipped JS bundle (grepped the built output directly).
-- **Configurable CORS** (`app.py`, `ALLOWED_ORIGINS`) — set to exactly `https://ev-nexus.pages.dev` on the deployed backend. No wildcard.
-- **Real health endpoint** (`GET /api/health`) — confirmed live and correct after the gotcha above was fixed.
+| Variable | Where | Value in production |
+|---|---|---|
+| `ALLOWED_ORIGINS` | Render | `https://ev-nexus.pages.dev` (exact origin, no wildcard) |
+| `GEMINI_API_KEY` | Render (secret) | Set in the dashboard, never in the repository |
+| `VITE_API_BASE` | Frontend build | `https://ev-nexus-backend.onrender.com/api` |
 
-## GEMINI_API_KEY — Status
+The Gemini key exists only on the backend; a Playwright test asserts that no key appears
+in any script served to the browser. Each browser session gets its own isolated
+simulation state.
 
-**Set on the deployed backend** (added by the user directly in Render's dashboard — never read or transmitted by any session). One controlled live smoke test was run against production afterward:
+## Files that support deployment
 
-- The request reached `generativelanguage.googleapis.com` and **authenticated successfully** — no `AUTH_ERROR`, confirming the key itself is valid and correctly wired end-to-end (backend → Gemini SDK → network → Google's endpoint).
-- Gemini returned `HTTP 503 Service Unavailable` ("This model is currently experiencing high demand... please try again later") on both the initial attempt and one retry.
-- The system correctly detected this and fell back to deterministic telemetry both times (`fallback_used: true`, with a nonzero `llm_latency_sec` of ~9-11s confirming a real network round-trip was attempted, not skipped).
-- Per the "very small number of requests" instruction, no further retries were made in that session.
+- `requirements.txt` — pinned backend dependencies.
+- `render.yaml` — Render Blueprint (build and start commands, health-check path, secrets
+  marked `sync: false` so they are entered in the dashboard).
+- `frontend/src/api.ts` — reads `VITE_API_BASE`, defaulting to `http://127.0.0.1:8000/api`.
+- `app.py` — `ALLOWED_ORIGINS` CORS allowlist and `GET /api/health`.
 
-**Conclusion: the key and integration are confirmed correctly configured, but live structured-intent extraction has not yet been confirmed to actually succeed** — the blocker observed was Google's own model availability at that moment, not this project's code or configuration. Retrying later (a single request, e.g. via the "Force fallback" checkbox left unchecked on the live Overview page) is the natural next step to get a full success confirmation.
+## Deploying your own copy
 
-## Production Smoke Test Results (this pass)
+**Backend (Render):** New → Blueprint → select this repository; Render reads
+`render.yaml`. Set `ALLOWED_ORIGINS` to your frontend URL and, optionally,
+`GEMINI_API_KEY`. Without a key the app runs on telemetry-only scheduling.
 
-All run directly against the live URLs above:
+**Frontend (Cloudflare Pages):**
+
+```bash
+cd frontend
+VITE_API_BASE=https://<your-backend>.onrender.com/api npm run build
+npx wrangler pages deploy dist --project-name <your-project>
+```
+
+Both services redeploy automatically on push to `main` once connected to GitHub.
+
+## Production checks
 
 | Check | Result |
 |---|---|
 | `GET /api/health` | `{"status":"ok"}` |
-| CORS preflight from `https://ev-nexus.pages.dev` | `access-control-allow-origin: https://ev-nexus.pages.dev` (exact match, not `*`) |
-| `POST /api/reset` | `{"status":"ok",...}` |
-| `POST /api/negotiate` (force_fallback) | Correct telemetry-fallback response, correct `target_soc: 80.0` (bug fix from the prior pass confirmed working in production) |
-| `GET /api/station` | Correct port/queue state |
-| `POST /api/step` | EV reached target and completed (`completed: 1`) |
-| `GET /api/benchmarks` | Both allowlisted files present |
-| Frontend loads publicly | `HTTP 200`, correct `<title>EV NEXUS — Charging Negotiator</title>` |
-| Frontend → backend wiring | Verified by grepping the shipped JS bundle for the production backend URL |
+| CORS preflight from the frontend origin | Exact-origin `access-control-allow-origin` |
+| `POST /api/negotiate` with forced fallback | Correct telemetry-fallback response, 80% charge target |
+| `POST /api/step`, `GET /api/station`, `POST /api/reset` | Correct state transitions |
+| `GET /api/benchmarks` | Allow-listed result files served |
+| Live Gemini call | Key authenticates; on the recorded test Google returned a transient 503, and the system correctly fell back to telemetry |
+| Browser E2E against the deployed site | `E2E_BASE_URL=https://ev-nexus.pages.dev npm run test:e2e` |
 
-Browser rendering itself (clicking through the actual UI) was **not verified** — no browser automation tool is available in this session. See `docs/CURRENT_PROJECT_STATUS.md` for the exact scope of what "verified" means here (API-level + build-artifact verification, not visual/interactive browser testing).
+## Deployment note: Git Bash on Windows
 
-## How to Redeploy
+Git Bash rewrites arguments that look like Unix paths. Passing `/api/health` to the
+Render CLI from Git Bash turned it into `C:/Program Files/Git/api/health`, and the health
+check failed. Prefix such commands with `MSYS_NO_PATHCONV=1`. After changing the
+health-check path, restart the service: the running instance keeps the old path until
+it restarts.
 
-Both services auto-deploy on push to `main`:
-
-```bash
-git push origin main
-```
-
-To manually redeploy the frontend with a new build (e.g., after changing `VITE_API_BASE`):
-
-```bash
-cd frontend
-VITE_API_BASE=https://ev-nexus-backend.onrender.com/api npm run build
-npx wrangler pages deploy dist --project-name ev-nexus --branch main
-```
-
-To manually trigger a backend redeploy without a new commit:
-
-```bash
-render deploys create srv-dat12fjbc2fs73aot3e0 --confirm
-```
-
-(Requires `render login` once per machine; already authenticated on this machine.)
-
-## What Still Requires Your Action
-
-1. **Add `GEMINI_API_KEY` to Render's dashboard** if you want live Gemini — see above. Not done automatically, by design.
-2. **Authorize one live Gemini smoke test** once the key is set — ask, and it'll be run as a single controlled request, not an experiment batch.
-3. Optional: consider rotating the Render account API key. While automating the Render CLI setup, one internal debug command in this session accidentally displayed that token in the terminal output (not your Gemini key, and not printed anywhere public — this was a local session on your own machine — but rotating it via Render's dashboard under Account Settings → API Keys is a reasonable precaution).
+The original step-by-step deployment log is in
+[`docs/history/DEPLOYMENT_LOG.md`](history/DEPLOYMENT_LOG.md).
